@@ -234,6 +234,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update image alt tag
+  app.patch("/api/images/:id/alt-tag", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { altTag } = req.body;
+      
+      if (typeof altTag !== 'string') {
+        res.status(400).json({ error: "altTag must be a string" });
+        return;
+      }
+      
+      console.log(`API: Updating alt tag for image ${id}:`, { newAltTag: altTag });
+      
+      const result = await storage.updateCrawledImage(id, { altText: altTag });
+      
+      if (!result) {
+        res.status(404).json({ error: "Image not found" });
+        return;
+      }
+      
+      console.log(`API: Successfully updated alt tag for image ${id}:`, { 
+        oldAltTag: result.altText, 
+        newAltTag: altTag 
+      });
+      
+      res.json({ 
+        message: "Alt tag updated successfully",
+        altTag: altTag,
+        imageId: id
+      });
+    } catch (error) {
+      console.error(`API /api/images/${req.params.id}/alt-tag: Error:`, error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   // Server-Sent Events for real-time progress
   app.get("/api/crawl/:id/progress", (req, res) => {
     res.writeHead(200, {

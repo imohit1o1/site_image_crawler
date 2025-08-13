@@ -70,14 +70,14 @@ export default function CrawlerForm({ onCrawlStart, activeCrawlId }: CrawlerForm
 
   return (
     <Card className="bg-white rounded-xl shadow-sm border border-gray-200">
-      <CardContent className="p-6">
-        <div className="flex items-center space-x-2 mb-6">
-          <Rocket className="text-primary" size={20} />
-          <h2 className="text-lg font-semibold">Start Crawling</h2>
+      <CardContent className="p-4">
+        <div className="flex items-center space-x-2 mb-4">
+          <Rocket className="text-primary" size={18} />
+          <h2 className="text-base font-semibold">Start Crawling</h2>
         </div>
         
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
             {/* URL Input */}
             <FormField
               control={form.control}
@@ -93,7 +93,7 @@ export default function CrawlerForm({ onCrawlStart, activeCrawlId }: CrawlerForm
                         {...field}
                         type="url"
                         placeholder="https://example.com"
-                        className="pl-4 pr-10 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:border-primary"
+                        className="pl-4 pr-10 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:border-primary"
                         data-testid="input-target-url"
                       />
                       <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
@@ -101,23 +101,23 @@ export default function CrawlerForm({ onCrawlStart, activeCrawlId }: CrawlerForm
                       </div>
                     </div>
                   </FormControl>
-                  <p className="text-sm text-gray-500">Only same-origin pages will be crawled</p>
+                  <p className="text-xs text-gray-500">Only same-origin pages will be crawled</p>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
             {/* Crawl Options */}
-            <div className="space-y-4">
+            <div className="space-y-2.5">
               <h3 className="text-sm font-medium text-gray-900">Crawl Options</h3>
               
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-3">
                 <FormField
                   control={form.control}
                   name="maxPages"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm text-gray-700">Max Pages</FormLabel>
+                      <FormLabel className="text-sm font-medium text-gray-700">Max Pages</FormLabel>
                       <FormControl>
                         <Input
                           {...field}
@@ -125,7 +125,7 @@ export default function CrawlerForm({ onCrawlStart, activeCrawlId }: CrawlerForm
                           min="1"
                           max="1000"
                           onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                          className="text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-primary"
+                          className="text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-primary py-2"
                           data-testid="input-max-pages"
                         />
                       </FormControl>
@@ -139,7 +139,7 @@ export default function CrawlerForm({ onCrawlStart, activeCrawlId }: CrawlerForm
                   name="timeout"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm text-gray-700">Timeout (sec)</FormLabel>
+                      <FormLabel className="text-sm font-medium text-gray-700">Timeout (sec)</FormLabel>
                       <FormControl>
                         <Input
                           {...field}
@@ -147,7 +147,7 @@ export default function CrawlerForm({ onCrawlStart, activeCrawlId }: CrawlerForm
                           min="2"
                           max="60"
                           onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                          className="text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-primary"
+                          className="text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-primary py-2"
                           data-testid="input-timeout"
                         />
                       </FormControl>
@@ -155,36 +155,32 @@ export default function CrawlerForm({ onCrawlStart, activeCrawlId }: CrawlerForm
                     </FormItem>
                   )}
                 />
-              </div>
 
-              <FormField
-                control={form.control}
-                name="includeCssBackgrounds"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
-                        data-testid="checkbox-include-css-bg"
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel className="text-sm text-gray-700">
-                        Include CSS background images
-                      </FormLabel>
-                    </div>
-                  </FormItem>
-                )}
-              />
+                <FormField
+                  control={form.control}
+                  name="includeCssBackgrounds"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col space-y-0">
+                      <FormLabel className="text-sm font-medium text-gray-700 mb-2">CSS Backgrounds</FormLabel>
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+                          data-testid="checkbox-include-css-bg"
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
 
             {/* Submit Button */}
             <Button 
               type="submit"
               disabled={isDisabled}
-              className="w-full bg-primary hover:bg-blue-600 text-white font-medium py-3 px-4 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-primary hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
               data-testid="button-start-crawl"
             >
               <Play className="mr-2" size={16} />

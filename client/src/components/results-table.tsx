@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Search, Download, Trash2, Eye, Copy, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,18 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { type CrawledImage } from "@shared/schema";
 import { type ImageFilter } from "@/lib/types";
 
+// Debounce utility function
+function debounce<T extends (...args: any[]) => any>(
+  func: T,
+  delay: number
+): (...args: Parameters<T>) => void {
+  let timeoutId: NodeJS.Timeout;
+  return (...args: Parameters<T>) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => func(...args), delay);
+  };
+}
+
 interface ResultsTableProps {
   refreshTrigger: number;
   onImageView: (image: CrawledImage) => void;
@@ -24,6 +36,23 @@ export default function ResultsTable({ refreshTrigger, onImageView }: ResultsTab
     altTextFilter: 'all',
     imageTypeFilter: 'all'
   });
+  const [customAltTexts, setCustomAltTexts] = useState<Record<string, string>>({});
+
+  // Debounced function to update custom alt texts state
+  const debouncedUpdateState = useCallback(
+    debounce((imageId: string, value: string) => {
+      setCustomAltTexts(prev => ({ ...prev, [imageId]: value }));
+    }, 500),
+    []
+  );
+
+  // Debounced function to save custom alt text
+  const debouncedSave = useCallback(
+    debounce((imageId: string, value: string) => {
+      handleSaveCustomAlt(imageId, value);
+    }, 200),
+    []
+  );
 
   const { data: images = [], refetch } = useQuery({
     queryKey: ['/api/images', filters],
@@ -94,14 +123,27 @@ export default function ResultsTable({ refreshTrigger, onImageView }: ResultsTab
 
   const handleDownloadCSV = async () => {
     try {
-      const response = await fetch('/api/images/csv');
-      if (!response.ok) throw new Error('Failed to download CSV');
+      // Create CSV with custom alt tags included
+      const headers = ['Image URL', 'Page URL', 'Original Alt Text', 'Custom Alt Tag', 'Image Type', 'Filename', 'Dimensions'];
       
-      const blob = await response.blob();
+      const csvContent = [
+        headers.join(','),
+        ...images.map((img: CrawledImage) => [
+          `"${img.imageUrl}"`,
+          `"${img.pageUrl}"`,
+          `"${img.altText || ''}"`,
+          `"${customAltTexts[img.id] || ''}"`,
+          `"${img.imageType || ''}"`,
+          `"${img.filename || ''}"`,
+          `"${img.dimensions || ''}"`
+        ].join(','))
+      ].join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'crawled_images.csv';
+      a.download = 'crawled_images_with_custom_alt_tags.csv';
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -109,7 +151,7 @@ export default function ResultsTable({ refreshTrigger, onImageView }: ResultsTab
       
       toast({
         title: "Download Started",
-        description: "CSV file is being downloaded.",
+        description: "CSV file with custom alt tags is being downloaded.",
       });
     } catch (error) {
       toast({
@@ -131,6 +173,39 @@ export default function ResultsTable({ refreshTrigger, onImageView }: ResultsTab
       toast({
         title: "Error",
         description: "Failed to copy URL",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSaveCustomAlt = async (imageId: string, customAltText: string) => {
+    try {
+      const response = await fetch(`/api/images/${imageId}/alt-tag`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ altTag: customAltText }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update alt tag');
+      }
+
+      toast({
+        title: "Alt Tag Updated",
+        description: "Custom alt text has been saved successfully.",
+      });
+
+      // Update local state
+      setCustomAltTexts(prev => ({ ...prev, [imageId]: customAltText }));
+      
+      // Refresh the data
+      refetch();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update alt tag",
         variant: "destructive",
       });
     }
@@ -294,150 +369,165 @@ export default function ResultsTable({ refreshTrigger, onImageView }: ResultsTab
         </div>
 
         {/* Results Table */}
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader className="bg-gray-50">
-              <TableRow>
-                <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Image
-                </TableHead>
-                <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Source Page
-                </TableHead>
-                <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Alt Text
-                </TableHead>
-                <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Type
-                </TableHead>
-                <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody className="bg-white divide-y divide-gray-200">
-              {images.length === 0 ? (
+        <div className="overflow-hidden">
+          <div className="max-h-96 overflow-y-auto">
+            <Table>
+              <TableHeader className="bg-gray-50 sticky top-0 z-10">
                 <TableRow>
-                  <TableCell 
-                    colSpan={5} 
-                    className="px-6 py-8 text-center text-gray-500"
-                    data-testid="text-no-results"
-                  >
-                    No images found. Start a crawl to see results.
-                  </TableCell>
+                  <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
+                    Image
+                  </TableHead>
+                  <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
+                    Source Page
+                  </TableHead>
+                  <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
+                    Alt Text
+                  </TableHead>
+                  <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
+                    Custom Alt Tag
+                  </TableHead>
+                  <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
+                    Type
+                  </TableHead>
+                  <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
+                    Actions
+                  </TableHead>
                 </TableRow>
-              ) : (
-                images.map((image: CrawledImage) => {
-                  console.log('ResultsTable: Rendering image row:', {
-                    id: image.id,
-                    imageUrl: image.imageUrl,
-                    pageUrl: image.pageUrl
-                  });
-                  
-                  return (
-                    <TableRow 
-                      key={image.id} 
-                      className="hover:bg-gray-50"
-                      data-testid={`row-image-${image.id}`}
+              </TableHeader>
+              <TableBody className="bg-white divide-y divide-gray-200">
+                {images.length === 0 ? (
+                  <TableRow>
+                    <TableCell 
+                      colSpan={6} 
+                      className="px-6 py-8 text-center text-gray-500"
+                      data-testid="text-no-results"
                     >
-                      <TableCell className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="flex-shrink-0 h-12 w-12 bg-gray-200 rounded-lg overflow-hidden">
-                            <img 
-                              src={image.imageUrl} 
-                              alt={image.altText || 'Image'} 
-                              className="h-full w-full object-cover"
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.style.display = 'none';
-                                target.parentElement!.innerHTML = '<div class="h-full w-full bg-gray-300 flex items-center justify-center text-gray-500 text-xs">No Preview</div>';
+                      No images found. Start a crawl to see results.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  images.map((image: CrawledImage) => {
+                    console.log('ResultsTable: Rendering image row:', {
+                      id: image.id,
+                      imageUrl: image.imageUrl,
+                      pageUrl: image.pageUrl
+                    });
+                    
+                    return (
+                      <TableRow 
+                        key={image.id} 
+                        className="hover:bg-gray-50"
+                        data-testid={`row-image-${image.id}`}
+                      >
+                        <TableCell className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <div className="flex-shrink-0 h-12 w-12 bg-gray-200 rounded-lg overflow-hidden">
+                              <img 
+                                src={image.imageUrl} 
+                                alt={image.altText || 'Image'} 
+                                className="h-full w-full object-cover"
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement;
+                                  target.style.display = 'none';
+                                  target.parentElement!.innerHTML = '<div class="h-full w-full bg-gray-300 flex items-center justify-center text-gray-500 text-xs">No Preview</div>';
+                                }}
+                                data-testid={`img-preview-${image.id}`}
+                              />
+                            </div>
+                            <div className="ml-3">
+                              {/* <div className="text-sm text-gray-900 truncate max-w-xs" data-testid={`text-filename-${image.id}`}>
+                                {image.filename || 'unknown'}
+                              </div>
+                              <div className="text-xs text-gray-500" data-testid={`text-dimensions-${image.id}`}>
+                                {image.dimensions || 'Unknown size'}
+                              </div> */}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="px-6 py-4">
+                          <div className="text-sm text-gray-900 break-all" data-testid={`text-source-page-${image.id}`}>
+                            <a 
+                              href={image.pageUrl} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="hover:text-blue-600 hover:underline"
+                            >
+                              {image.pageUrl}
+                              <ExternalLink className="inline ml-1" size={12} />
+                            </a>
+                          </div>
+                        </TableCell>
+                        <TableCell className="px-6 py-4">
+                          <div className="text-sm text-gray-900" data-testid={`text-alt-text-${image.id}`}>
+                            {image.altText || (
+                              <span className="text-gray-500 italic">No alt text</span>
+                            )}
+                          </div>
+                          <Badge 
+                            className={`mt-1 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              image.altText 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-yellow-100 text-yellow-800'
+                            }`}
+                            data-testid={`badge-alt-status-${image.id}`}
+                          >
+                            {image.altText ? '✓ Has Alt' : '⚠ Missing Alt'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="px-6 py-4 w-96">
+                          <Input
+                            type="text"
+                            placeholder="Enter custom alt text..."
+                            className="text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-primary py-2 px-3 h-10 w-full"
+                            data-testid={`input-custom-alt-${image.id}`}
+                            onChange={(e) => debouncedUpdateState(image.id, e.target.value)}
+                            onBlur={() => debouncedSave(image.id, customAltTexts[image.id] || '')}
+                          />
+                        </TableCell>
+                        <TableCell className="px-6 py-4 whitespace-nowrap">
+                          <Badge 
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getImageTypeColor(image.imageType || '')}`}
+                            data-testid={`badge-image-type-${image.id}`}
+                          >
+                            {(image.imageType || 'unknown').toUpperCase()}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <div className="flex space-x-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                console.log('ResultsTable: View button clicked for image:', {
+                                  id: image.id,
+                                  imageUrl: image.imageUrl,
+                                  pageUrl: image.pageUrl
+                                });
+                                onImageView(image);
                               }}
-                              data-testid={`img-preview-${image.id}`}
-                            />
+                              className="text-blue-600 hover:text-blue-800"
+                              data-testid={`button-view-${image.id}`}
+                            >
+                              <Eye size={16} />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleCopyUrl(image.imageUrl)}
+                              className="text-gray-400 hover:text-gray-600"
+                              data-testid={`button-copy-${image.id}`}
+                            >
+                              <Copy size={16} />
+                            </Button>
                           </div>
-                          <div className="ml-3">
-                            <div className="text-sm text-gray-900 truncate max-w-xs" data-testid={`text-filename-${image.id}`}>
-                              {image.filename || 'unknown'}
-                            </div>
-                            <div className="text-xs text-gray-500" data-testid={`text-dimensions-${image.id}`}>
-                              {image.dimensions || 'Unknown size'}
-                            </div>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="px-6 py-4">
-                        <div className="text-sm text-gray-900 break-all max-w-xs" data-testid={`text-source-page-${image.id}`}>
-                          <a 
-                            href={image.pageUrl} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="hover:text-blue-600 hover:underline"
-                          >
-                            {image.pageUrl}
-                            <ExternalLink className="inline ml-1" size={12} />
-                          </a>
-                        </div>
-                      </TableCell>
-                      <TableCell className="px-6 py-4">
-                        <div className="text-sm text-gray-900" data-testid={`text-alt-text-${image.id}`}>
-                          {image.altText || (
-                            <span className="text-gray-500 italic">No alt text</span>
-                          )}
-                        </div>
-                        <Badge 
-                          className={`mt-1 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            image.altText 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-yellow-100 text-yellow-800'
-                          }`}
-                          data-testid={`badge-alt-status-${image.id}`}
-                        >
-                          {image.altText ? '✓ Has Alt' : '⚠ Missing Alt'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="px-6 py-4 whitespace-nowrap">
-                        <Badge 
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getImageTypeColor(image.imageType || '')}`}
-                          data-testid={`badge-image-type-${image.id}`}
-                        >
-                          {(image.imageType || 'unknown').toUpperCase()}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex space-x-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              console.log('ResultsTable: View button clicked for image:', {
-                                id: image.id,
-                                imageUrl: image.imageUrl,
-                                pageUrl: image.pageUrl
-                              });
-                              onImageView(image);
-                            }}
-                            className="text-blue-600 hover:text-blue-800"
-                            data-testid={`button-view-${image.id}`}
-                          >
-                            <Eye size={16} />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleCopyUrl(image.imageUrl)}
-                            className="text-gray-400 hover:text-gray-600"
-                            data-testid={`button-copy-${image.id}`}
-                          >
-                            <Copy size={16} />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-              )}
-            </TableBody>
-          </Table>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       </CardContent>
     </Card>

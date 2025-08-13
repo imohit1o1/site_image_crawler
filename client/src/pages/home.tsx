@@ -67,27 +67,31 @@ export default function Home() {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Crawler Form */}
-          <div className="lg:col-span-1">
+        {/* Top Row: Crawler Form and Crawl Status side by side */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+          {/* Section 1: Crawler Form */}
+          <div className="lg:col-span-2">
             <CrawlerForm 
               onCrawlStart={handleCrawlStart}
               activeCrawlId={activeCrawlId}
             />
-            
+          </div>
+
+          {/* Section 2: Crawl Status */}
+          <div>
             <CrawlStatus 
               crawlId={activeCrawlId}
               onCrawlComplete={handleCrawlComplete}
             />
           </div>
+        </div>
 
-          {/* Results Section */}
-          <div className="lg:col-span-2">
-            <ResultsTable 
-              refreshTrigger={refreshTrigger}
-              onImageView={handleImageView}
-            />
-          </div>
+        {/* Bottom Row: Results Section spanning full width */}
+        <div className="w-full">
+          <ResultsTable 
+            refreshTrigger={refreshTrigger}
+            onImageView={handleImageView}
+          />
         </div>
       </div>
 

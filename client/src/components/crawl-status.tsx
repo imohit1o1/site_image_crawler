@@ -75,22 +75,22 @@ export default function CrawlStatus({ crawlId, onCrawlComplete }: CrawlStatusPro
   };
 
   return (
-    <Card className="mt-6 bg-white rounded-xl shadow-sm border border-gray-200">
-      <CardContent className="p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">Crawl Status</h3>
+    <Card className="mt-4 bg-white rounded-xl shadow-sm border border-gray-200">
+      <CardContent className="p-3">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-semibold">Crawl Status</h3>
           <Badge 
-            className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(progress.status)}`}
+            className={`px-2 py-0.5 text-xs font-medium rounded-full ${getStatusColor(progress.status)}`}
             data-testid="status-badge"
           >
             {getStatusText(progress.status)}
           </Badge>
         </div>
         
-        <div className="space-y-4">
+        <div className="space-y-2.5">
           {/* Progress Bar */}
           <div>
-            <div className="flex justify-between text-sm text-gray-600 mb-2">
+            <div className="flex justify-between text-xs text-gray-600 mb-1.5">
               <span>Pages Crawled</span>
               <span>
                 <span data-testid="text-pages-processed">{progress.pagesProcessed}</span> / 
@@ -99,13 +99,13 @@ export default function CrawlStatus({ crawlId, onCrawlComplete }: CrawlStatusPro
             </div>
             <Progress 
               value={progress.progress} 
-              className="w-full bg-gray-200 h-2"
+              className="w-full bg-gray-200 h-1.5"
               data-testid="progress-bar"
             />
           </div>
 
           {/* Current Page */}
-          <div className="text-sm">
+          <div className="text-xs">
             <span className="text-gray-500">Current Page:</span>
             <span 
               className="text-gray-900 break-all ml-2" 
@@ -117,30 +117,30 @@ export default function CrawlStatus({ crawlId, onCrawlComplete }: CrawlStatusPro
 
           {/* Error Message */}
           {progress.error && (
-            <div className="text-sm text-red-600" data-testid="text-error">
+            <div className="text-xs text-red-600" data-testid="text-error">
               <span className="font-medium">Error:</span> {progress.error}
             </div>
           )}
 
           {/* Statistics */}
-          <div className="grid grid-cols-2 gap-4 pt-2">
-            <div className="text-center p-3 bg-gray-50 rounded-lg">
+          <div className="grid grid-cols-2 gap-2 pt-1">
+            <div className="text-center p-1.5 bg-gray-50 rounded-lg">
               <div 
-                className="text-2xl font-bold text-green-600" 
+                className="text-lg font-bold text-green-600" 
                 data-testid="text-images-found"
               >
                 {progress.imagesFound}
               </div>
-              <div className="text-sm text-gray-500">Images Found</div>
+              <div className="text-xs text-gray-500">Images Found</div>
             </div>
-            <div className="text-center p-3 bg-gray-50 rounded-lg">
+            <div className="text-center p-1.5 bg-gray-50 rounded-lg">
               <div 
-                className="text-2xl font-bold text-blue-600" 
+                className="text-lg font-bold text-blue-600" 
                 data-testid="text-elapsed-time"
               >
                 {progress.elapsedTime}
               </div>
-              <div className="text-sm text-gray-500">Elapsed Time</div>
+              <div className="text-xs text-gray-500">Elapsed Time</div>
             </div>
           </div>
         </div>
