@@ -75,40 +75,40 @@ export default function CrawlStatus({ crawlId, onCrawlComplete }: CrawlStatusPro
   };
 
   return (
-    <Card className="mt-4 bg-white rounded-xl shadow-sm border border-gray-200">
-      <CardContent className="p-3">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-semibold">Crawl Status</h3>
+    <Card className="modern-card border-0 shadow-2xl">
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="text-lg font-bold text-foreground">Crawl Status</h3>
           <Badge 
-            className={`px-2 py-0.5 text-xs font-medium rounded-full ${getStatusColor(progress.status)}`}
+            className={`px-3 py-1.5 text-sm font-semibold rounded-full ${getStatusColor(progress.status)}`}
             data-testid="status-badge"
           >
             {getStatusText(progress.status)}
           </Badge>
         </div>
         
-        <div className="space-y-2.5">
+        <div className="space-y-4">
           {/* Progress Bar */}
           <div>
-            <div className="flex justify-between text-xs text-gray-600 mb-1.5">
+            <div className="flex justify-between text-sm text-muted-foreground mb-3">
               <span>Pages Crawled</span>
-              <span>
+              <span className="font-semibold">
                 <span data-testid="text-pages-processed">{progress.pagesProcessed}</span> / 
                 <span data-testid="text-total-pages">{progress.totalPagesFound}</span>
               </span>
             </div>
             <Progress 
               value={progress.progress} 
-              className="w-full bg-gray-200 h-1.5"
+              className="w-full bg-card h-3 rounded-full modern-progress"
               data-testid="progress-bar"
             />
           </div>
 
           {/* Current Page */}
-          <div className="text-xs">
-            <span className="text-gray-500">Current Page:</span>
+          <div className="text-sm">
+            <span className="text-muted-foreground">Current Page:</span>
             <span 
-              className="text-gray-900 break-all ml-2" 
+              className="text-foreground break-all ml-3 font-medium" 
               data-testid="text-current-page"
             >
               {progress.currentPage || '-'}
@@ -117,30 +117,30 @@ export default function CrawlStatus({ crawlId, onCrawlComplete }: CrawlStatusPro
 
           {/* Error Message */}
           {progress.error && (
-            <div className="text-xs text-red-600" data-testid="text-error">
-              <span className="font-medium">Error:</span> {progress.error}
+            <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-xl" data-testid="text-error">
+              <span className="font-semibold">Error:</span> {progress.error}
             </div>
           )}
 
           {/* Statistics */}
-          <div className="grid grid-cols-2 gap-2 pt-1">
-            <div className="text-center p-1.5 bg-gray-50 rounded-lg">
+          <div className="grid grid-cols-2 gap-4 pt-3">
+            <div className="text-center p-4 bg-gradient-to-br from-success/20 to-success/10 rounded-xl border border-success/20">
               <div 
-                className="text-lg font-bold text-green-600" 
+                className="text-2xl font-bold text-success" 
                 data-testid="text-images-found"
               >
                 {progress.imagesFound}
               </div>
-              <div className="text-xs text-gray-500">Images Found</div>
+              <div className="text-sm text-muted-foreground font-medium">Images Found</div>
             </div>
-            <div className="text-center p-1.5 bg-gray-50 rounded-lg">
+            <div className="text-center p-4 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl border border-primary/20">
               <div 
-                className="text-lg font-bold text-blue-600" 
+                className="text-2xl font-bold text-primary" 
                 data-testid="text-elapsed-time"
               >
                 {progress.elapsedTime}
               </div>
-              <div className="text-xs text-gray-500">Elapsed Time</div>
+              <div className="text-sm text-muted-foreground font-medium">Elapsed Time</div>
             </div>
           </div>
         </div>

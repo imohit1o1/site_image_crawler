@@ -5,116 +5,69 @@
 @tailwind utilities;
 
 :root {
-  --background: hsl(0, 0%, 100%);
-  --foreground: hsl(210, 25%, 7.8431%);
-  --card: hsl(180, 6.6667%, 97.0588%);
-  --card-foreground: hsl(210, 25%, 7.8431%);
-  --popover: hsl(0, 0%, 100%);
-  --popover-foreground: hsl(210, 25%, 7.8431%);
-  --primary: hsl(218.2, 77.8%, 59.6%);
+  /* Dark theme colors matching the financial dashboard */
+  --background: hsl(240, 10%, 4%);
+  --foreground: hsl(0, 0%, 95%);
+  --card: hsl(240, 10%, 6%);
+  --card-foreground: hsl(0, 0%, 95%);
+  --popover: hsl(240, 10%, 4%);
+  --popover-foreground: hsl(0, 0%, 95%);
+  --primary: hsl(262, 83%, 58%);
   --primary-foreground: hsl(0, 0%, 100%);
-  --secondary: hsl(210, 25%, 7.8431%);
-  --secondary-foreground: hsl(0, 0%, 100%);
-  --muted: hsl(240, 1.9608%, 90%);
-  --muted-foreground: hsl(210, 25%, 7.8431%);
-  --accent: hsl(211.5789, 51.3514%, 92.7451%);
-  --accent-foreground: hsl(218.2, 77.8%, 59.6%);
-  --destructive: hsl(356.3033, 90.5579%, 54.3137%);
+  --secondary: hsl(240, 10%, 8%);
+  --secondary-foreground: hsl(0, 0%, 95%);
+  --muted: hsl(240, 10%, 8%);
+  --muted-foreground: hsl(0, 0%, 65%);
+  --accent: hsl(240, 10%, 8%);
+  --accent-foreground: hsl(262, 83%, 58%);
+  --destructive: hsl(0, 84%, 60%);
   --destructive-foreground: hsl(0, 0%, 100%);
-  --border: hsl(201.4286, 30.4348%, 90.9804%);
-  --input: hsl(200, 23.0769%, 97.4510%);
-  --ring: hsl(218.2, 77.8%, 59.6%);
-  --chart-1: hsl(218.2, 77.8%, 59.6%);
-  --chart-2: hsl(159.7826, 100%, 36.0784%);
-  --chart-3: hsl(42.0290, 92.8251%, 56.2745%);
-  --chart-4: hsl(147.1429, 78.5047%, 41.9608%);
-  --chart-5: hsl(341.4894, 75.2000%, 50.9804%);
-  --sidebar: hsl(180, 6.6667%, 97.0588%);
-  --sidebar-foreground: hsl(210, 25%, 7.8431%);
-  --sidebar-primary: hsl(218.2, 77.8%, 59.6%);
+  --border: hsl(240, 10%, 12%);
+  --input: hsl(240, 10%, 8%);
+  --ring: hsl(262, 83%, 58%);
+  --chart-1: hsl(262, 83%, 58%);
+  --chart-2: hsl(35, 92%, 55%);
+  --chart-3: hsl(341, 75%, 51%);
+  --chart-4: hsl(147, 79%, 42%);
+  --chart-5: hsl(200, 83%, 58%);
+  --sidebar: hsl(240, 10%, 6%);
+  --sidebar-foreground: hsl(0, 0%, 95%);
+  --sidebar-primary: hsl(262, 83%, 58%);
   --sidebar-primary-foreground: hsl(0, 0%, 100%);
-  --sidebar-accent: hsl(211.5789, 51.3514%, 92.7451%);
-  --sidebar-accent-foreground: hsl(218.2, 77.8%, 59.6%);
-  --sidebar-border: hsl(205.0000, 25.0000%, 90.5882%);
-  --sidebar-ring: hsl(218.2, 77.8%, 59.6%);
+  --sidebar-accent: hsl(240, 10%, 8%);
+  --sidebar-accent-foreground: hsl(262, 83%, 58%);
+  --sidebar-border: hsl(240, 10%, 12%);
+  --sidebar-ring: hsl(262, 83%, 58%);
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   --font-serif: Georgia, serif;
   --font-mono: Menlo, monospace;
-  --radius: 0.5rem;
-  --shadow-2xs: 0px 2px 0px 0px hsl(218.2, 77.8%, 59.6% / 0.00);
-  --shadow-xs: 0px 2px 0px 0px hsl(218.2, 77.8%, 59.6% / 0.00);
-  --shadow-sm: 0px 1px 2px 0px hsl(0, 0%, 0% / 0.05);
-  --shadow: 0px 1px 3px 0px hsl(0, 0%, 0% / 0.1), 0px 1px 2px 0px hsl(0, 0%, 0% / 0.06);
-  --shadow-md: 0px 4px 6px -1px hsl(0, 0%, 0% / 0.1), 0px 2px 4px -1px hsl(0, 0%, 0% / 0.06);
-  --shadow-lg: 0px 10px 15px -3px hsl(0, 0%, 0% / 0.1), 0px 4px 6px -2px hsl(0, 0%, 0% / 0.05);
-  --shadow-xl: 0px 20px 25px -5px hsl(0, 0%, 0% / 0.1), 0px 10px 10px -5px hsl(0, 0%, 0% / 0.04);
-  --shadow-2xl: 0px 25px 50px -12px hsl(0, 0%, 0% / 0.25);
-  --tracking-normal: 0em;
-  --spacing: 0.25rem;
+  --radius: 0.75rem;
+  --shadow-2xs: 0px 2px 0px 0px hsl(262, 83%, 58% / 0.00);
+  --shadow-xs: 0px 2px 0px 0px hsl(262, 83%, 58% / 0.00);
+  --shadow-sm: 0px 1px 3px 0px hsl(0, 0%, 0% / 0.3);
+  --shadow: 0px 4px 6px -1px hsl(0, 0%, 0% / 0.3), 0px 2px 4px -1px hsl(0, 0%, 0% / 0.2);
+  --shadow-md: 0px 10px 15px -3px hsl(0, 0%, 0% / 0.3), 0px 4px 6px -2px hsl(0, 0%, 0% / 0.2);
+  --shadow-lg: 0px 20px 25px -5px hsl(0, 0%, 0% / 0.3), 0px 10px 10px -5px hsl(0, 0%, 0% / 0.2);
+  --shadow-xl: 0px 25px 50px -5px hsl(0, 0%, 0% / 0.3), 0px 10px 10px -5px hsl(0, 0%, 0% / 0.2);
+  --shadow-2xl: 0px 25px 50px -12px hsl(0, 0%, 0% / 0.5);
   
-  /* Custom colors matching design reference */
-  --color-primary: hsl(218.2, 77.8%, 59.6%);
-  --color-secondary: hsl(239.3, 79.5%, 61.6%);
-  --color-success: hsl(159.7, 84.6%, 36.1%);
-  --color-warning: hsl(35.2, 92.4%, 55.9%);
-  --color-error: hsl(356.3, 90.6%, 54.3%);
-  --color-gray-50: hsl(210, 20%, 98%);
-  --color-gray-100: hsl(220, 14.3%, 95.9%);
-  --color-gray-200: hsl(220, 13%, 91%);
-  --color-gray-300: hsl(216, 12.2%, 83.9%);
-  --color-gray-400: hsl(218, 10.6%, 64.9%);
-  --color-gray-500: hsl(220, 8.9%, 46.1%);
-  --color-gray-600: hsl(215, 13.8%, 34.1%);
-  --color-gray-700: hsl(217, 19.1%, 26.7%);
-  --color-gray-800: hsl(215, 27.9%, 16.9%);
-  --color-gray-900: hsl(210, 25%, 7.8%);
-}
-
-.dark {
-  --background: hsl(0, 0%, 0%);
-  --foreground: hsl(200, 6.6667%, 91.1765%);
-  --card: hsl(228, 9.8039%, 10%);
-  --card-foreground: hsl(0, 0%, 85.0980%);
-  --popover: hsl(0, 0%, 0%);
-  --popover-foreground: hsl(200, 6.6667%, 91.1765%);
-  --primary: hsl(218.2, 77.8%, 59.6%);
-  --primary-foreground: hsl(0, 0%, 100%);
-  --secondary: hsl(195.0000, 15.3846%, 94.9020%);
-  --secondary-foreground: hsl(210, 25%, 7.8431%);
-  --muted: hsl(0, 0%, 9.4118%);
-  --muted-foreground: hsl(210, 3.3898%, 46.2745%);
-  --accent: hsl(205.7143, 70%, 7.8431%);
-  --accent-foreground: hsl(218.2, 77.8%, 59.6%);
-  --destructive: hsl(356.3033, 90.5579%, 54.3137%);
-  --destructive-foreground: hsl(0, 0%, 100%);
-  --border: hsl(210, 5.2632%, 14.9020%);
-  --input: hsl(207.6923, 27.6596%, 18.4314%);
-  --ring: hsl(218.2, 77.8%, 59.6%);
-  --chart-1: hsl(218.2, 77.8%, 59.6%);
-  --chart-2: hsl(159.7826, 100%, 36.0784%);
-  --chart-3: hsl(42.0290, 92.8251%, 56.2745%);
-  --chart-4: hsl(147.1429, 78.5047%, 41.9608%);
-  --chart-5: hsl(341.4894, 75.2000%, 50.9804%);
-  --sidebar: hsl(228, 9.8039%, 10%);
-  --sidebar-foreground: hsl(0, 0%, 85.0980%);
-  --sidebar-primary: hsl(218.2, 77.8%, 59.6%);
-  --sidebar-primary-foreground: hsl(0, 0%, 100%);
-  --sidebar-accent: hsl(205.7143, 70%, 7.8431%);
-  --sidebar-accent-foreground: hsl(218.2, 77.8%, 59.6%);
-  --sidebar-border: hsl(205.7143, 15.7895%, 26.0784%);
-  --sidebar-ring: hsl(218.2, 77.8%, 59.6%);
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-  --font-serif: Georgia, serif;
-  --font-mono: Menlo, monospace;
-  --radius: 0.5rem;
-  --shadow-2xs: 0px 2px 0px 0px hsl(218.2, 77.8%, 59.6% / 0.00);
-  --shadow-xs: 0px 2px 0px 0px hsl(218.2, 77.8%, 59.6% / 0.00);
-  --shadow-sm: 0px 1px 2px 0px hsl(0, 0%, 0% / 0.05);
-  --shadow: 0px 1px 3px 0px hsl(0, 0%, 0% / 0.1), 0px 1px 2px 0px hsl(0, 0%, 0% / 0.06);
-  --shadow-md: 0px 4px 6px -1px hsl(0, 0%, 0% / 0.1), 0px 2px 4px -1px hsl(0, 0%, 0% / 0.06);
-  --shadow-lg: 0px 10px 15px -3px hsl(0, 0%, 0% / 0.1), 0px 4px 6px -2px hsl(0, 0%, 0% / 0.05);
-  --shadow-xl: 0px 20px 25px -5px hsl(0, 0%, 0% / 0.1), 0px 10px 10px -5px hsl(0, 0%, 0% / 0.04);
-  --shadow-2xl: 0px 25px 50px -12px hsl(0, 0%, 0% / 0.25);
+  /* Custom colors matching the financial dashboard design */
+  --color-primary: hsl(262, 83%, 58%);
+  --color-secondary: hsl(240, 10%, 8%);
+  --color-success: hsl(147, 79%, 42%);
+  --color-warning: hsl(35, 92%, 55%);
+  --color-error: hsl(0, 84%, 60%);
+  --color-accent: hsl(341, 75%, 51%);
+  --color-gray-50: hsl(240, 10%, 4%);
+  --color-gray-100: hsl(240, 10%, 6%);
+  --color-gray-200: hsl(240, 10%, 8%);
+  --color-gray-300: hsl(240, 10%, 12%);
+  --color-gray-400: hsl(240, 10%, 20%);
+  --color-gray-500: hsl(240, 10%, 35%);
+  --color-gray-600: hsl(240, 10%, 50%);
+  --color-gray-700: hsl(240, 10%, 65%);
+  --color-gray-800: hsl(240, 10%, 80%);
+  --color-gray-900: hsl(0, 0%, 95%);
 }
 
 @layer base {
@@ -125,45 +78,95 @@
   body {
     @apply font-sans antialiased bg-background text-foreground;
     font-family: var(--font-sans);
+    background: linear-gradient(135deg, hsl(240, 10%, 4%) 0%, hsl(240, 10%, 6%) 100%);
   }
 }
 
-/* Custom utility classes matching design reference */
+/* Custom utility classes matching the financial dashboard design */
 @layer utilities {
   .font-inter {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   }
+  
+  .glass-effect {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .card-modern {
+    @apply bg-card border border-border rounded-2xl shadow-lg;
+    background: linear-gradient(135deg, hsl(240, 10%, 6%) 0%, hsl(240, 10%, 8%) 100%);
+  }
+  
+  .button-modern {
+    @apply bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-xl transition-all duration-200 border border-white/20;
+    box-shadow: 0 4px 12px hsl(262, 83%, 58% / 0.3);
+  }
+  
+  .input-modern {
+    @apply bg-input border border-white/20 text-foreground placeholder:text-muted-foreground rounded-xl;
+    background: linear-gradient(135deg, hsl(240, 10%, 8%) 0%, hsl(240, 10%, 10%) 100%);
+  }
 }
 
-/* Additional component styles for better match to design */
-.bg-primary {
-  background-color: var(--color-primary);
+/* Component-specific styles */
+.modern-card {
+  @apply card-modern p-6;
 }
 
-.text-primary {
-  color: var(--color-primary);
+.modern-button {
+  @apply button-modern px-6 py-3;
 }
 
-.bg-success {
-  background-color: var(--color-success);
+.modern-input {
+  @apply input-modern px-4 py-3;
 }
 
-.text-success {
-  color: var(--color-success);
+.modern-progress {
+  @apply border border-white/20 rounded-full;
 }
 
-.bg-error {
-  background-color: var(--color-error);
+/* Gradient text effects */
+.gradient-text {
+  background: linear-gradient(135deg, hsl(262, 83%, 58%), hsl(341, 75%, 51%));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.text-error {
-  color: var(--color-error);
+/* Hover effects */
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.bg-warning {
-  background-color: var(--color-warning);
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px hsl(0, 0%, 0% / 0.4);
 }
 
-.text-warning {
-  color: var(--color-warning);
+/* Custom scrollbar styling */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: hsl(240, 10%, 8%);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, hsl(262, 83%, 58%), hsl(341, 75%, 51%));
+  border-radius: 4px;
+  border: 1px solid hsl(240, 10%, 12%);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, hsl(262, 83%, 65%), hsl(341, 75%, 58%));
+}
+
+/* Firefox scrollbar styling */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(262, 83%, 58%) hsl(240, 10%, 8%);
 }

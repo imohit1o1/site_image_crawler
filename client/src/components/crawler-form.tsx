@@ -69,22 +69,24 @@ export default function CrawlerForm({ onCrawlStart, activeCrawlId }: CrawlerForm
   const isDisabled = !!activeCrawlId || startCrawlMutation.isPending;
 
   return (
-    <Card className="bg-white rounded-xl shadow-sm border border-gray-200">
-      <CardContent className="p-4">
-        <div className="flex items-center space-x-2 mb-4">
-          <Rocket className="text-primary" size={18} />
-          <h2 className="text-base font-semibold">Start Crawling</h2>
+    <Card className="modern-card border-0 shadow-2xl">
+      <CardContent className="p-6">
+        <div className="flex items-center space-x-3 mb-6">
+          <div className="w-10 h-10 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center">
+            <Rocket className="text-white" size={20} />
+          </div>
+          <h2 className="text-xl font-bold text-foreground">Start Crawling</h2>
         </div>
         
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
-            {/* URL Input */}
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+            {/* URL Input - Full Width */}
             <FormField
               control={form.control}
               name="targetUrl"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm font-medium text-gray-700">
+                  <FormLabel className="text-sm font-semibold text-foreground">
                     Target Website URL
                   </FormLabel>
                   <FormControl>
@@ -93,86 +95,98 @@ export default function CrawlerForm({ onCrawlStart, activeCrawlId }: CrawlerForm
                         {...field}
                         type="url"
                         placeholder="https://example.com"
-                        className="pl-4 pr-10 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:border-primary"
+                        className="modern-input pl-4 pr-12 py-3 text-foreground placeholder:text-muted-foreground"
                         data-testid="input-target-url"
                       />
-                      <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-                        <Globe className="text-gray-400" size={16} />
+                      <div className="absolute inset-y-0 right-0 pr-4 flex items-center">
+                        <Globe className="text-muted-foreground" size={18} />
                       </div>
                     </div>
                   </FormControl>
-                  <p className="text-xs text-gray-500">Only same-origin pages will be crawled</p>
+                  <p className="text-xs text-muted-foreground">Only same-origin pages will be crawled</p>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            {/* Crawl Options */}
-            <div className="space-y-2.5">
-              <h3 className="text-sm font-medium text-gray-900">Crawl Options</h3>
+            {/* Bento Grid Layout for Options */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-foreground">Crawl Options</h3>
               
-              <div className="grid grid-cols-3 gap-3">
-                <FormField
-                  control={form.control}
-                  name="maxPages"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm font-medium text-gray-700">Max Pages</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          type="number"
-                          min="1"
-                          max="1000"
-                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                          className="text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-primary py-2"
-                          data-testid="input-max-pages"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <div className="grid grid-cols-6 gap-4">
+                {/* Max Pages - 2 columns */}
+                <div className="col-span-2">
+                  <FormField
+                    control={form.control}
+                    name="maxPages"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-semibold text-foreground">Max Pages</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            type="number"
+                            min="1"
+                            max="1000"
+                            onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                            className="modern-input text-sm py-2"
+                            data-testid="input-max-pages"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
                 
-                <FormField
-                  control={form.control}
-                  name="timeout"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm font-medium text-gray-700">Timeout (sec)</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          type="number"
-                          min="2"
-                          max="60"
-                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                          className="text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-primary py-2"
-                          data-testid="input-timeout"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {/* Timeout - 2 columns */}
+                <div className="col-span-2">
+                  <FormField
+                    control={form.control}
+                    name="timeout"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-semibold text-foreground">Timeout (sec)</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            type="number"
+                            min="2"
+                            max="60"
+                            onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                            className="modern-input text-sm py-2"
+                            data-testid="input-timeout"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
-                <FormField
-                  control={form.control}
-                  name="includeCssBackgrounds"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col space-y-0">
-                      <FormLabel className="text-sm font-medium text-gray-700 mb-2">CSS Backgrounds</FormLabel>
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                          className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
-                          data-testid="checkbox-include-css-bg"
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
+                {/* CSS Backgrounds - 2 columns */}
+                <div className="col-span-2">
+                  <FormField
+                    control={form.control}
+                    name="includeCssBackgrounds"
+                    render={({ field }) => (
+                      <FormItem className="h-full">
+                        <FormLabel className="text-sm font-semibold text-foreground">CSS Backgrounds</FormLabel>
+                        <div className="flex items-center justify-center h-12 bg-card rounded-xl border border-border mt-2">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                              className="h-5 w-5 text-primary focus:ring-primary border-border rounded"
+                              data-testid="checkbox-include-css-bg"
+                            />
+                          </FormControl>
+                          <span className="ml-3 text-sm text-muted-foreground">Include</span>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </div>
             </div>
 
@@ -180,10 +194,10 @@ export default function CrawlerForm({ onCrawlStart, activeCrawlId }: CrawlerForm
             <Button 
               type="submit"
               disabled={isDisabled}
-              className="w-full bg-primary hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="modern-button w-full py-3 text-lg font-semibold shadow-lg hover:shadow-xl"
               data-testid="button-start-crawl"
             >
-              <Play className="mr-2" size={16} />
+              <Play className="mr-3" size={20} />
               {startCrawlMutation.isPending ? "Starting..." : "Start Crawling"}
             </Button>
           </form>

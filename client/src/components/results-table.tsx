@@ -215,17 +215,17 @@ export default function ResultsTable({ refreshTrigger, onImageView }: ResultsTab
     switch (type?.toLowerCase()) {
       case 'jpg':
       case 'jpeg':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-primary/20 text-primary border border-primary/30';
       case 'png':
-        return 'bg-purple-100 text-purple-800';
+        return 'bg-accent/20 text-accent border border-accent/30';
       case 'gif':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-warning/20 text-warning border border-warning/30';
       case 'svg':
-        return 'bg-green-100 text-green-800';
+        return 'bg-success/20 text-success border border-success/30';
       case 'webp':
-        return 'bg-indigo-100 text-indigo-800';
+        return 'bg-chart-4/20 text-chart-4 border border-chart-4/30';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-muted text-muted-foreground border border-border';
     }
   };
 
@@ -238,19 +238,19 @@ export default function ResultsTable({ refreshTrigger, onImageView }: ResultsTab
   });
 
   return (
-    <Card className="bg-white rounded-xl shadow-sm border border-gray-200">
+    <Card className="modern-card border-0 shadow-2xl">
       <CardContent className="p-0">
         {/* Results Header */}
-        <div className="p-6 border-b border-gray-200">
+        <div className="p-6 border-b border-border/20">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Crawl Results</h2>
-              <p className="text-sm text-gray-500 mt-1">
-                <span data-testid="text-total-images">{images.length}</span> images found from{' '}
-                <span data-testid="text-total-pages">{uniquePages}</span> pages
+              <h2 className="text-xl font-bold text-foreground">Crawl Results</h2>
+              <p className="text-muted-foreground mt-2">
+                <span data-testid="text-total-images" className="text-primary font-semibold">{images.length}</span> images found from{' '}
+                <span data-testid="text-total-pages" className="text-primary font-semibold">{uniquePages}</span> pages
               </p>
             </div>
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-4">
               <Button
                 variant="outline"
                 onClick={async () => {
@@ -275,7 +275,7 @@ export default function ResultsTable({ refreshTrigger, onImageView }: ResultsTab
                     });
                   }
                 }}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                className="modern-input px-4 py-2 text-sm font-medium text-foreground bg-card hover:bg-card/80 border-border"
                 data-testid="button-fix-urls"
               >
                 Fix URLs
@@ -284,7 +284,7 @@ export default function ResultsTable({ refreshTrigger, onImageView }: ResultsTab
                 variant="outline"
                 onClick={() => clearResultsMutation.mutate()}
                 disabled={clearResultsMutation.isPending}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                className="modern-input px-4 py-2 text-sm font-medium text-foreground bg-card hover:bg-card/80 border-border"
                 data-testid="button-clear-results"
               >
                 <Trash2 className="mr-2" size={16} />
@@ -292,7 +292,7 @@ export default function ResultsTable({ refreshTrigger, onImageView }: ResultsTab
               </Button>
               <Button
                 onClick={handleDownloadCSV}
-                className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg"
+                className="modern-button px-4 py-2 text-sm font-medium"
                 data-testid="button-download-csv"
               >
                 <Download className="mr-2" size={16} />
@@ -303,7 +303,7 @@ export default function ResultsTable({ refreshTrigger, onImageView }: ResultsTab
         </div>
 
         {/* Filters and Search */}
-        <div className="p-6 border-b border-gray-200 bg-gray-50">
+        <div className="p-6 border-b border-border/20 bg-card/50">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {/* Search */}
             <div className="md:col-span-2">
@@ -313,11 +313,11 @@ export default function ResultsTable({ refreshTrigger, onImageView }: ResultsTab
                   placeholder="Search images..."
                   value={filters.search}
                   onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-                  className="pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm"
+                  className="modern-input pl-10 border-border focus:ring-2 focus:ring-primary focus:border-primary text-sm"
                   data-testid="input-search"
                 />
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center">
-                  <Search className="text-gray-400" size={16} />
+                  <Search className="text-muted-foreground" size={16} />
                 </div>
               </div>
             </div>
@@ -329,7 +329,7 @@ export default function ResultsTable({ refreshTrigger, onImageView }: ResultsTab
                 onValueChange={(value) => setFilters(prev => ({ ...prev, altTextFilter: value as any }))}
               >
                 <SelectTrigger 
-                  className="border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm"
+                  className="modern-input border-border focus:ring-2 focus:ring-primary focus:border-primary text-sm"
                   data-testid="select-alt-text-filter"
                 >
                   <SelectValue />
@@ -349,7 +349,7 @@ export default function ResultsTable({ refreshTrigger, onImageView }: ResultsTab
                 onValueChange={(value) => setFilters(prev => ({ ...prev, imageTypeFilter: value }))}
               >
                 <SelectTrigger 
-                  className="border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm"
+                  className="modern-input border-border focus:ring-2 focus:ring-primary focus:border-primary text-sm"
                   data-testid="select-image-type-filter"
                 >
                   <SelectValue />
@@ -370,39 +370,42 @@ export default function ResultsTable({ refreshTrigger, onImageView }: ResultsTab
 
         {/* Results Table */}
         <div className="overflow-hidden">
-          <div className="max-h-96 overflow-y-auto">
+          <div className="max-h-96 overflow-y-auto custom-scrollbar">
             <Table>
-              <TableHeader className="bg-gray-50 sticky top-0 z-10">
-                <TableRow>
-                  <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
+              <TableHeader className="bg-card/50 sticky top-0 z-10">
+                <TableRow className="border-border/20">
+                  <TableHead className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider bg-card/50 rounded-tl-xl">
                     Image
                   </TableHead>
-                  <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
+                  <TableHead className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider bg-card/50">
                     Source Page
                   </TableHead>
-                  <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
+                  <TableHead className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider bg-card/50">
                     Alt Text
                   </TableHead>
-                  <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
+                  <TableHead className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider bg-card/50">
                     Custom Alt Tag
                   </TableHead>
-                  <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
+                  <TableHead className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider bg-card/50">
                     Type
                   </TableHead>
-                  <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
+                  <TableHead className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider bg-card/50 rounded-tr-xl">
                     Actions
                   </TableHead>
                 </TableRow>
               </TableHeader>
-              <TableBody className="bg-white divide-y divide-gray-200">
+              <TableBody className="bg-card divide-y divide-border/20">
                 {images.length === 0 ? (
                   <TableRow>
                     <TableCell 
                       colSpan={6} 
-                      className="px-6 py-8 text-center text-gray-500"
+                      className="px-6 py-12 text-center text-muted-foreground"
                       data-testid="text-no-results"
                     >
-                      No images found. Start a crawl to see results.
+                      <div className="space-y-2">
+                        <div className="text-lg font-medium">No images found</div>
+                        <div className="text-sm">Start a crawl to see results here</div>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -416,12 +419,12 @@ export default function ResultsTable({ refreshTrigger, onImageView }: ResultsTab
                     return (
                       <TableRow 
                         key={image.id} 
-                        className="hover:bg-gray-50"
+                        className="hover:bg-card/80 transition-colors border-border/20"
                         data-testid={`row-image-${image.id}`}
                       >
                         <TableCell className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
-                            <div className="flex-shrink-0 h-12 w-12 bg-gray-200 rounded-lg overflow-hidden">
+                            <div className="flex-shrink-0 h-14 w-14 bg-card rounded-xl overflow-hidden border border-border/20">
                               <img 
                                 src={image.imageUrl} 
                                 alt={image.altText || 'Image'} 
@@ -429,45 +432,45 @@ export default function ResultsTable({ refreshTrigger, onImageView }: ResultsTab
                                 onError={(e) => {
                                   const target = e.target as HTMLImageElement;
                                   target.style.display = 'none';
-                                  target.parentElement!.innerHTML = '<div class="h-full w-full bg-gray-300 flex items-center justify-center text-gray-500 text-xs">No Preview</div>';
+                                  target.parentElement!.innerHTML = '<div class="h-full w-full bg-muted flex items-center justify-center text-muted-foreground text-xs rounded-xl">No Preview</div>';
                                 }}
                                 data-testid={`img-preview-${image.id}`}
                               />
                             </div>
-                            <div className="ml-3">
-                              {/* <div className="text-sm text-gray-900 truncate max-w-xs" data-testid={`text-filename-${image.id}`}>
+                            <div className="ml-4">
+                              <div className="text-sm text-foreground font-medium truncate max-w-xs" data-testid={`text-filename-${image.id}`}>
                                 {image.filename || 'unknown'}
                               </div>
-                              <div className="text-xs text-gray-500" data-testid={`text-dimensions-${image.id}`}>
+                              <div className="text-xs text-muted-foreground" data-testid={`text-dimensions-${image.id}`}>
                                 {image.dimensions || 'Unknown size'}
-                              </div> */}
+                              </div>
                             </div>
                           </div>
                         </TableCell>
                         <TableCell className="px-6 py-4">
-                          <div className="text-sm text-gray-900 break-all" data-testid={`text-source-page-${image.id}`}>
+                          <div className="text-sm text-foreground break-all max-w-xs" data-testid={`text-source-page-${image.id}`}>
                             <a 
                               href={image.pageUrl} 
                               target="_blank" 
                               rel="noopener noreferrer"
-                              className="hover:text-blue-600 hover:underline"
+                              className="hover:text-primary hover:underline transition-colors"
                             >
                               {image.pageUrl}
-                              <ExternalLink className="inline ml-1" size={12} />
+                              <ExternalLink className="inline ml-2" size={14} />
                             </a>
                           </div>
                         </TableCell>
                         <TableCell className="px-6 py-4">
-                          <div className="text-sm text-gray-900" data-testid={`text-alt-text-${image.id}`}>
+                          <div className="text-sm text-foreground" data-testid={`text-alt-text-${image.id}`}>
                             {image.altText || (
-                              <span className="text-gray-500 italic">No alt text</span>
+                              <span className="text-muted-foreground italic">No alt text</span>
                             )}
                           </div>
                           <Badge 
-                            className={`mt-1 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            className={`mt-2 inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
                               image.altText 
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-yellow-100 text-yellow-800'
+                                ? 'bg-success/20 text-success border border-success/30' 
+                                : 'bg-warning/20 text-warning border border-warning/30'
                             }`}
                             data-testid={`badge-alt-status-${image.id}`}
                           >
@@ -478,7 +481,7 @@ export default function ResultsTable({ refreshTrigger, onImageView }: ResultsTab
                           <Input
                             type="text"
                             placeholder="Enter custom alt text..."
-                            className="text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-primary py-2 px-3 h-10 w-full"
+                            className="modern-input text-sm py-2"
                             data-testid={`input-custom-alt-${image.id}`}
                             onChange={(e) => debouncedUpdateState(image.id, e.target.value)}
                             onBlur={() => debouncedSave(image.id, customAltTexts[image.id] || '')}
@@ -486,7 +489,7 @@ export default function ResultsTable({ refreshTrigger, onImageView }: ResultsTab
                         </TableCell>
                         <TableCell className="px-6 py-4 whitespace-nowrap">
                           <Badge 
-                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getImageTypeColor(image.imageType || '')}`}
+                            className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${getImageTypeColor(image.imageType || '')}`}
                             data-testid={`badge-image-type-${image.id}`}
                           >
                             {(image.imageType || 'unknown').toUpperCase()}
@@ -505,7 +508,7 @@ export default function ResultsTable({ refreshTrigger, onImageView }: ResultsTab
                                 });
                                 onImageView(image);
                               }}
-                              className="text-blue-600 hover:text-blue-800"
+                              className="text-primary hover:text-primary/80 hover:bg-primary/10 rounded-lg border border-white/20 p-2"
                               data-testid={`button-view-${image.id}`}
                             >
                               <Eye size={16} />
@@ -514,7 +517,7 @@ export default function ResultsTable({ refreshTrigger, onImageView }: ResultsTab
                               variant="ghost"
                               size="sm"
                               onClick={() => handleCopyUrl(image.imageUrl)}
-                              className="text-gray-400 hover:text-gray-600"
+                              className="text-muted-foreground hover:text-foreground hover:bg-card rounded-lg border border-white/20 p-2"
                               data-testid={`button-copy-${image.id}`}
                             >
                               <Copy size={16} />
