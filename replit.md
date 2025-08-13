@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is a web-based image crawling application that allows users to scan websites and extract all images found on the pages. The application consists of a React frontend with a clean, modern interface built using shadcn/ui components, and an Express.js backend that handles the crawling operations using Puppeteer. Users can submit URLs to crawl, monitor progress in real-time, and view detailed results of all discovered images including metadata like alt text, dimensions, and source pages.
+This is a web-based image crawling application that allows users to scan websites and extract all images found across multiple pages. The application consists of a React frontend with a clean, modern interface built using shadcn/ui components, and an Express.js backend that handles the crawling operations using both Puppeteer and a simple HTML fetch-based crawler. Users can submit URLs to crawl multiple pages (up to specified limit), monitor progress in real-time, and view detailed results of all discovered images including metadata like alt text, dimensions, and source pages. The crawler now supports multi-page crawling within the same domain with configurable timeout values in seconds (2, 6, 10 sec options).
 
 ## User Preferences
 
@@ -20,11 +20,13 @@ Preferred communication style: Simple, everyday language.
 
 ### Backend Architecture  
 - **Framework**: Express.js with TypeScript
-- **Web Crawling**: Puppeteer for headless browser automation to extract images from web pages
+- **Web Crawling**: Dual crawler implementation - Simple HTML fetch-based crawler (default) and Puppeteer for complex JavaScript sites
+- **Multi-page Support**: Breadth-first crawling of same-domain links with configurable page limits
 - **Database ORM**: Drizzle ORM configured for PostgreSQL with type-safe database operations
 - **Schema Validation**: Zod schemas shared between frontend and backend for consistent data validation
 - **Storage**: In-memory storage implementation with interface for easy database integration
 - **Real-time Updates**: Server-sent events for live crawl progress updates
+- **Timeout Control**: User-configurable timeout values in seconds (2-60 seconds)
 
 ### Data Models
 The application uses three main data entities:

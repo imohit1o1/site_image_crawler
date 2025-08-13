@@ -53,6 +53,12 @@ class SimpleCrawlerService {
   private async performSimpleCrawl(job: CrawlJob): Promise<void> {
     await storage.updateCrawlJob(job.id, { status: 'running' });
     
+    const visitedUrls = new Set<string>();
+    const urlsToVisit: string[] = [job.targetUrl];
+    let totalImages = 0;
+    let pagesProcessed = 0;
+    const baseUrl = new URL(job.targetUrl).origin;
+
     this.emitProgress(job.id, {
       status: 'running',
       progress: 0,
@@ -64,49 +70,107 @@ class SimpleCrawlerService {
     });
 
     try {
-      // Use fetch to get the HTML content
-      const response = await fetch(job.targetUrl, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (compatible; Site Image Crawler/1.0)'
+      while (urlsToVisit.length > 0 && pagesProcessed < job.maxPages) {
+        const currentUrl = urlsToVisit.shift()!;
+        
+        if (visitedUrls.has(currentUrl)) {
+          continue;
         }
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const html = await response.text();
-      const images = this.extractImages(html, job.targetUrl, job.includeCssBackgrounds);
-
-      // Save images
-      for (const imageData of images) {
-        await storage.createCrawledImage({
-          jobId: job.id,
-          pageUrl: job.targetUrl,
-          imageUrl: imageData.imageUrl,
-          altText: imageData.altText,
-          imgTagHtml: imageData.html,
-          imageType: this.getImageType(imageData.imageUrl),
-          filename: this.getFilename(imageData.imageUrl),
-          dimensions: null
+        
+        visitedUrls.add(currentUrl);
+        
+        this.emitProgress(job.id, {
+          status: 'running',
+          progress: Math.round((pagesProcessed / job.maxPages) * 100),
+          pagesProcessed,
+          totalPagesFound: visitedUrls.size + urlsToVisit.length,
+          imagesFound: totalImages,
+          currentPage: currentUrl,
+          error: null
         });
+
+        try {
+          // Use fetch to get the HTML content
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), job.timeout);
+          
+          const response = await fetch(currentUrl, {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (compatible; Site Image Crawler/1.0)'
+            },
+            signal: controller.signal
+          });
+          
+          clearTimeout(timeoutId);
+
+          if (!response.ok) {
+            console.warn(`Failed to fetch ${currentUrl}: ${response.status}`);
+            continue;
+          }
+
+          const html = await response.text();
+          
+          // Extract images from this page
+          const images = this.extractImages(html, currentUrl, job.includeCssBackgrounds);
+
+          // Save images
+          for (const imageData of images) {
+            await storage.createCrawledImage({
+              jobId: job.id,
+              pageUrl: currentUrl,
+              imageUrl: imageData.imageUrl,
+              altText: imageData.altText,
+              imgTagHtml: imageData.html,
+              imageType: this.getImageType(imageData.imageUrl),
+              filename: this.getFilename(imageData.imageUrl),
+              dimensions: null
+            });
+          }
+
+          totalImages += images.length;
+          
+          // Extract links for further crawling (only same domain)
+          const newUrls = this.extractLinks(html, currentUrl, baseUrl);
+          for (const url of newUrls) {
+            if (!visitedUrls.has(url) && !urlsToVisit.includes(url)) {
+              urlsToVisit.push(url);
+            }
+          }
+
+          pagesProcessed++;
+
+          // Update progress
+          await storage.updateCrawlJob(job.id, {
+            progress: Math.round((pagesProcessed / job.maxPages) * 100),
+            pagesProcessed,
+            totalPagesFound: visitedUrls.size + urlsToVisit.length,
+            imagesFound: totalImages,
+            currentPage: currentUrl
+          });
+
+        } catch (pageError) {
+          console.warn(`Error processing page ${currentUrl}:`, pageError);
+          continue;
+        }
       }
 
+      // Crawl completed
       await storage.updateCrawlJob(job.id, {
         status: 'completed',
         progress: 100,
-        pagesProcessed: 1,
-        totalPagesFound: 1,
-        imagesFound: images.length,
+        pagesProcessed,
+        totalPagesFound: visitedUrls.size,
+        imagesFound: totalImages,
+        currentPage: null,
         completedAt: new Date()
       });
 
       this.emitProgress(job.id, {
         status: 'completed',
         progress: 100,
-        pagesProcessed: 1,
-        totalPagesFound: 1,
-        imagesFound: images.length,
+        pagesProcessed,
+        totalPagesFound: visitedUrls.size,
+        imagesFound: totalImages,
         currentPage: null,
         error: null
       });
@@ -191,6 +255,39 @@ class SimpleCrawlerService {
     const extension = url.split('.').pop()?.toLowerCase().split('?')[0];
     const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp', 'bmp', 'ico'];
     return extension && imageExtensions.includes(extension) ? extension : null;
+  }
+
+  private extractLinks(html: string, currentUrl: string, baseUrl: string): string[] {
+    const links: string[] = [];
+    const linkRegex = /<a[^>]+href\s*=\s*["']([^"']+)["'][^>]*>/gi;
+    let match;
+
+    while ((match = linkRegex.exec(html)) !== null) {
+      try {
+        const href = match[1];
+        const absoluteUrl = this.resolveUrl(href, currentUrl);
+        const url = new URL(absoluteUrl);
+        
+        // Only include same-domain links
+        if (url.origin === baseUrl) {
+          // Remove fragments and normalize
+          url.hash = '';
+          const cleanUrl = url.toString();
+          
+          // Skip common non-page resources
+          const pathname = url.pathname.toLowerCase();
+          const skipExtensions = ['.pdf', '.doc', '.docx', '.zip', '.exe', '.dmg', '.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp', '.ico', '.css', '.js'];
+          
+          if (!skipExtensions.some(ext => pathname.endsWith(ext))) {
+            links.push(cleanUrl);
+          }
+        }
+      } catch {
+        // Invalid URL, skip
+      }
+    }
+
+    return links;
   }
 
   private getFilename(url: string): string | null {
