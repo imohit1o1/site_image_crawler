@@ -57,7 +57,9 @@ class SimpleCrawlerService {
     const urlsToVisit: string[] = [job.targetUrl];
     let totalImages = 0;
     let pagesProcessed = 0;
+    let failedPages = 0;
     const baseUrl = new URL(job.targetUrl).origin;
+    const maxRetries = 2; // Maximum retry attempts for failed pages
 
     this.emitProgress(job.id, {
       status: 'running',
@@ -89,68 +91,125 @@ class SimpleCrawlerService {
           error: null
         });
 
-        try {
-          // Use fetch to get the HTML content
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), job.timeout);
-          
-          const response = await fetch(currentUrl, {
-            headers: {
-              'User-Agent': 'Mozilla/5.0 (compatible; Site Image Crawler/1.0)'
-            },
-            signal: controller.signal
-          });
-          
-          clearTimeout(timeoutId);
+        let retryCount = 0;
+        let pageSuccess = false;
 
-          if (!response.ok) {
-            console.warn(`Failed to fetch ${currentUrl}: ${response.status}`);
-            continue;
-          }
+        while (retryCount <= maxRetries && !pageSuccess) {
+          try {
+            // Use fetch to get the HTML content
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => {
+              controller.abort();
+            }, job.timeout || 60000);
+            
+            try {
+              const response = await fetch(currentUrl, {
+                headers: {
+                  'User-Agent': 'Mozilla/5.0 (compatible; Site Image Crawler/1.0)'
+                },
+                signal: controller.signal
+              });
+              
+              clearTimeout(timeoutId);
 
-          const html = await response.text();
-          
-          // Extract images from this page
-          const images = this.extractImages(html, currentUrl, job.includeCssBackgrounds);
+              if (!response.ok) {
+                console.warn(`Failed to fetch ${currentUrl}: ${response.status}`);
+                if (retryCount < maxRetries) {
+                  retryCount++;
+                  console.log(`Retrying ${currentUrl} (attempt ${retryCount}/${maxRetries + 1})`);
+                  await new Promise(resolve => setTimeout(resolve, 1000 * retryCount)); // Exponential backoff
+                  continue;
+                }
+                break;
+              }
 
-          // Save images
-          for (const imageData of images) {
-            await storage.createCrawledImage({
-              jobId: job.id,
-              pageUrl: currentUrl,
-              imageUrl: imageData.imageUrl,
-              altText: imageData.altText,
-              imgTagHtml: imageData.html,
-              imageType: this.getImageType(imageData.imageUrl),
-              filename: this.getFilename(imageData.imageUrl),
-              dimensions: null
-            });
-          }
+              const html = await response.text();
+              
+              // Extract images from this page
+              const images = this.extractImages(html, currentUrl, job.includeCssBackgrounds);
 
-          totalImages += images.length;
-          
-          // Extract links for further crawling (only same domain)
-          const newUrls = this.extractLinks(html, currentUrl, baseUrl);
-          for (const url of newUrls) {
-            if (!visitedUrls.has(url) && !urlsToVisit.includes(url)) {
-              urlsToVisit.push(url);
+              // Save images
+              for (const imageData of images) {
+                console.log('Crawler: Processing image:', {
+                  originalUrl: imageData.imageUrl,
+                  pageUrl: currentUrl,
+                  hasAmp: imageData.imageUrl.includes('&amp;'),
+                  isNextJs: imageData.imageUrl.includes('/_next/image'),
+                  htmlContainsAmp: imageData.html.includes('&amp;'),
+                  htmlSample: imageData.html.substring(0, 100)
+                });
+                
+                await storage.createCrawledImage({
+                  jobId: job.id,
+                  pageUrl: currentUrl,
+                  imageUrl: imageData.imageUrl,
+                  altText: imageData.altText,
+                  imgTagHtml: imageData.html,
+                  imageType: this.getImageType(imageData.imageUrl),
+                  filename: this.getFilename(imageData.imageUrl),
+                  dimensions: null
+                });
+              }
+
+              totalImages += images.length;
+              
+              // Extract links for further crawling (only same domain)
+              const newUrls = this.extractLinks(html, currentUrl, baseUrl);
+              for (const url of newUrls) {
+                if (!visitedUrls.has(url) && !urlsToVisit.includes(url)) {
+                  urlsToVisit.push(url);
+                }
+              }
+
+              pagesProcessed++;
+              pageSuccess = true;
+
+              // Update progress
+              await storage.updateCrawlJob(job.id, {
+                progress: Math.round((pagesProcessed / job.maxPages) * 100),
+                pagesProcessed,
+                totalPagesFound: visitedUrls.size + urlsToVisit.length,
+                imagesFound: totalImages,
+                currentPage: currentUrl
+              });
+
+            } catch (fetchError) {
+              clearTimeout(timeoutId);
+              
+              if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+                console.warn(`Request timeout for ${currentUrl} after ${job.timeout || 60000}ms`);
+                if (retryCount < maxRetries) {
+                  retryCount++;
+                  console.log(`Retrying ${currentUrl} after timeout (attempt ${retryCount}/${maxRetries + 1})`);
+                  await new Promise(resolve => setTimeout(resolve, 2000 * retryCount)); // Longer delay for timeouts
+                  continue;
+                }
+                break;
+              }
+              
+              // Re-throw other fetch errors to be caught by the outer catch
+              throw fetchError;
+            }
+
+          } catch (pageError) {
+            console.warn(`Error processing page ${currentUrl} (attempt ${retryCount + 1}/${maxRetries + 1}):`, pageError);
+            
+            if (retryCount < maxRetries) {
+              retryCount++;
+              console.log(`Retrying ${currentUrl} (attempt ${retryCount}/${maxRetries + 1})`);
+              await new Promise(resolve => setTimeout(resolve, 1000 * retryCount)); // Exponential backoff
+              continue;
+            } else {
+              failedPages++;
+              console.warn(`Failed to process ${currentUrl} after ${maxRetries + 1} attempts`);
+              break;
             }
           }
+        }
 
-          pagesProcessed++;
-
-          // Update progress
-          await storage.updateCrawlJob(job.id, {
-            progress: Math.round((pagesProcessed / job.maxPages) * 100),
-            pagesProcessed,
-            totalPagesFound: visitedUrls.size + urlsToVisit.length,
-            imagesFound: totalImages,
-            currentPage: currentUrl
-          });
-
-        } catch (pageError) {
-          console.warn(`Error processing page ${currentUrl}:`, pageError);
-          continue;
+        // If we still haven't succeeded after all retries, log it and continue
+        if (!pageSuccess) {
+          console.warn(`Skipping ${currentUrl} after all retry attempts failed`);
         }
       }
 
@@ -175,6 +234,8 @@ class SimpleCrawlerService {
         error: null
       });
 
+      console.log(`Crawl completed for job ${job.id}: ${pagesProcessed} pages processed, ${totalImages} images found, ${failedPages} pages failed`);
+
     } catch (error) {
       throw error;
     }
@@ -191,18 +252,31 @@ class SimpleCrawlerService {
       const srcMatch = imgTag.match(/src\s*=\s*["']([^"']*)["']/i);
       if (srcMatch && srcMatch[1]) {
         const altMatch = imgTag.match(/alt\s*=\s*["']([^"']*)["']/i);
-        const imageUrl = this.resolveUrl(srcMatch[1], baseUrl);
+        let imageUrl = this.resolveUrl(srcMatch[1], baseUrl);
+        
+        // Fix Next.js image URLs by ensuring width parameter is present
+        imageUrl = this.fixNextJsImageUrl(imageUrl);
+        
+        // Decode HTML entities
+        const beforeDecode = imageUrl;
+        imageUrl = this.decodeHtmlEntities(imageUrl);
+        if (beforeDecode !== imageUrl) {
+          console.log('Crawler: HTML entities decoded:', {
+            before: beforeDecode,
+            after: imageUrl
+          });
+        }
         
         images.push({
           imageUrl,
-          altText: altMatch ? altMatch[1] : '',
+          altText: altMatch ? this.decodeHtmlEntities(altMatch[1]) : '',
           html: imgTag
         });
       }
     }
 
     // Extract picture source elements
-    const pictureRegex = /<picture[^>]*>(.*?)<\/picture>/gis;
+    const pictureRegex = /<picture[^>]*>([\s\S]*?)<\/picture>/gi;
     const pictureMatches = html.match(pictureRegex) || [];
     
     for (const picture of pictureMatches) {
@@ -214,7 +288,14 @@ class SimpleCrawlerService {
         if (srcsetMatch && srcsetMatch[1]) {
           const firstSrc = srcsetMatch[1].split(',')[0].trim().split(' ')[0];
           if (firstSrc) {
-            const imageUrl = this.resolveUrl(firstSrc, baseUrl);
+            let imageUrl = this.resolveUrl(firstSrc, baseUrl);
+            
+            // Fix Next.js image URLs by ensuring width parameter is present
+            imageUrl = this.fixNextJsImageUrl(imageUrl);
+            
+            // Decode HTML entities
+            imageUrl = this.decodeHtmlEntities(imageUrl);
+            
             images.push({
               imageUrl,
               altText: '',
@@ -231,7 +312,14 @@ class SimpleCrawlerService {
       let cssMatch;
       
       while ((cssMatch = cssUrlRegex.exec(html)) !== null) {
-        const imageUrl = this.resolveUrl(cssMatch[1], baseUrl);
+        let imageUrl = this.resolveUrl(cssMatch[1], baseUrl);
+        
+        // Fix Next.js image URLs by ensuring width parameter is present
+        imageUrl = this.fixNextJsImageUrl(imageUrl);
+        
+        // Decode HTML entities
+        imageUrl = this.decodeHtmlEntities(imageUrl);
+        
         images.push({
           imageUrl,
           altText: '',
@@ -313,6 +401,35 @@ class SimpleCrawlerService {
 
   removeProgressListener(jobId: string): void {
     this.progressListeners.delete(jobId);
+  }
+
+  private fixNextJsImageUrl(url: string): string {
+    // Check if this is a Next.js image URL
+    if (url.includes('/_next/image') && url.includes('url=')) {
+      // Ensure width parameter is present
+      if (!url.includes('w=') && !url.includes('width=')) {
+        // Add default width parameter
+        const separator = url.includes('?') ? '&' : '?';
+        url += `${separator}w=640`;
+      }
+      
+      // Ensure quality parameter is present
+      if (!url.includes('q=')) {
+        url += '&q=75';
+      }
+    }
+    return url;
+  }
+
+  private decodeHtmlEntities(text: string): string {
+    // Simple HTML entity decoding
+    return text
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&nbsp;/g, ' ');
   }
 }
 

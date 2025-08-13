@@ -21,11 +21,19 @@ export default function Home() {
   };
 
   const handleImageView = (image: CrawledImage) => {
+    console.log('Home: handleImageView called with image:', {
+      id: image.id,
+      imageUrl: image.imageUrl,
+      pageUrl: image.pageUrl
+    });
     setSelectedImage(image);
+    console.log('Home: selectedImage state set to:', image);
   };
 
   const handleCloseModal = () => {
+    console.log('Home: handleCloseModal called, clearing selectedImage');
     setSelectedImage(null);
+    console.log('Home: selectedImage state cleared');
   };
 
   return (

@@ -18,6 +18,7 @@ export interface IStorage {
   getCrawledImagesByJobId(jobId: string): Promise<CrawledImage[]>;
   getAllCrawledImages(): Promise<CrawledImage[]>;
   deleteCrawledImagesByJobId(jobId: string): Promise<void>;
+  updateCrawledImage(id: string, updates: Partial<CrawledImage>): Promise<CrawledImage | undefined>;
 }
 
 export class MemStorage implements IStorage {
@@ -128,6 +129,15 @@ export class MemStorage implements IStorage {
       }
     });
     entriesToDelete.forEach(id => this.crawledImages.delete(id));
+  }
+
+  async updateCrawledImage(id: string, updates: Partial<CrawledImage>): Promise<CrawledImage | undefined> {
+    const image = this.crawledImages.get(id);
+    if (!image) return undefined;
+    
+    const updatedImage = { ...image, ...updates };
+    this.crawledImages.set(id, updatedImage);
+    return updatedImage;
   }
 }
 

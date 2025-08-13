@@ -66,6 +66,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       let images = await storage.getAllCrawledImages();
       
+      console.log('API /api/images: Retrieved images from storage:', {
+        totalCount: images.length,
+        sampleImages: images.slice(0, 3).map(img => ({
+          id: img.id,
+          imageUrl: img.imageUrl,
+          pageUrl: img.pageUrl,
+          altText: img.altText
+        }))
+      });
+      
       const { search, altTextFilter, imageTypeFilter } = req.query;
       
       // Apply search filter
@@ -91,8 +101,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         images = images.filter(img => img.imageType === imageTypeFilter);
       }
       
+      console.log('API /api/images: Returning filtered images:', {
+        filteredCount: images.length,
+        filters: { search, altTextFilter, imageTypeFilter }
+      });
+      
       res.json(images);
     } catch (error) {
+      console.error('API /api/images: Error:', error);
       res.status(500).json({ error: "Internal server error" });
     }
   });
@@ -124,6 +140,96 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.setHeader('Content-Disposition', 'attachment; filename="crawled_images.csv"');
       res.send(csvContent);
     } catch (error) {
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Fix existing image URLs (remove HTML entities and fix Next.js URLs)
+  app.post("/api/fix-image-urls", async (req, res) => {
+    try {
+      console.log('API: Starting to fix existing image URLs...');
+      
+      const images = await storage.getAllCrawledImages();
+      console.log(`API: Found ${images.length} images to process`);
+      
+      let fixedCount = 0;
+      
+      for (const image of images) {
+        let needsUpdate = false;
+        let fixedImageUrl = image.imageUrl;
+        let fixedAltText = image.altText;
+        
+        console.log(`API: Processing image ${image.id}:`, {
+          originalUrl: image.imageUrl,
+          hasAmp: image.imageUrl.includes('&amp;')
+        });
+        
+        // Fix HTML entities in image URL
+        if (fixedImageUrl.includes('&amp;')) {
+          const beforeFix = fixedImageUrl;
+          fixedImageUrl = fixedImageUrl.replace(/&amp;/g, '&');
+          console.log(`API: Fixed HTML entities in URL:`, {
+            before: beforeFix,
+            after: fixedImageUrl
+          });
+          needsUpdate = true;
+        }
+        
+        // Fix Next.js image URLs
+        if (fixedImageUrl.includes('/_next/image') && fixedImageUrl.includes('url=')) {
+          if (!fixedImageUrl.includes('w=') && !fixedImageUrl.includes('width=')) {
+            const separator = fixedImageUrl.includes('?') ? '&' : '?';
+            fixedImageUrl += `${separator}w=640`;
+            console.log(`API: Added width parameter to Next.js URL:`, fixedImageUrl);
+            needsUpdate = true;
+          }
+          
+          if (!fixedImageUrl.includes('q=')) {
+            fixedImageUrl += '&q=75';
+            console.log(`API: Added quality parameter to Next.js URL:`, fixedImageUrl);
+            needsUpdate = true;
+          }
+        }
+        
+        // Fix HTML entities in alt text
+        if (fixedAltText && fixedAltText.includes('&amp;')) {
+          const beforeFix = fixedAltText;
+          fixedAltText = fixedAltText.replace(/&amp;/g, '&');
+          console.log(`API: Fixed HTML entities in alt text:`, {
+            before: beforeFix,
+            after: fixedAltText
+          });
+          needsUpdate = true;
+        }
+        
+        if (needsUpdate) {
+          console.log(`API: Updating image ${image.id} with fixed data`);
+          const result = await storage.updateCrawledImage(image.id, {
+            imageUrl: fixedImageUrl,
+            altText: fixedAltText
+          });
+          
+          if (result) {
+            fixedCount++;
+            console.log(`API: Successfully updated image ${image.id}:`, {
+              oldUrl: image.imageUrl,
+              newUrl: result.imageUrl
+            });
+          } else {
+            console.error(`API: Failed to update image ${image.id}`);
+          }
+        } else {
+          console.log(`API: Image ${image.id} doesn't need fixing`);
+        }
+      }
+      
+      console.log(`API: Fix operation completed. Fixed ${fixedCount} image URLs`);
+      res.json({ 
+        message: `Fixed ${fixedCount} image URLs`,
+        fixedCount 
+      });
+    } catch (error) {
+      console.error('API /api/fix-image-urls: Error:', error);
       res.status(500).json({ error: "Internal server error" });
     }
   });

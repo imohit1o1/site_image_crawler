@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Site Image Crawler - Web Interface</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#6366F1',
+                        success: '#10B981',
+                        warning: '#F59E0B',
+                        error: '#EF4444',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 font-inter text-gray-900">
+    <!-- @COMPONENT: Header -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                        <i class="fas fa-spider text-white text-sm"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-semibold text-gray-900">Site Image Crawler</h1>
+                        <p class="text-sm text-gray-500">Web Interface</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="text-sm text-gray-500">
+                        <span data-bind="sessionInfo.totalCrawlsToday" data-mock="true">12</span> crawls today
+                    </div>
+                    <button class="p-2 text-gray-400 hover:text-gray-600 transition-colors">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- @END_COMPONENT: Header -->
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- @COMPONENT: CrawlerForm -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div class="flex items-center space-x-2 mb-6">
+                        <i class="fas fa-rocket text-primary"></i>
+                        <h2 class="text-lg font-semibold">Start Crawling</h2>
+                    </div>
+                    
+                    <form class="space-y-6" data-event="submit:handleCrawlStart" data-implementation="Should validate URL and start crawling process">
+                        <!-- URL Input -->
+                        <div>
+                            <label for="crawl-url" class="block text-sm font-medium text-gray-700 mb-2">
+                                Target Website URL
+                            </label>
+                            <div class="relative">
+                                <input 
+                                    type="url" 
+                                    id="crawl-url"
+                                    data-bind="form.targetUrl"
+                                    placeholder="https://example.com"
+                                    class="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                                    required
+                                    data-mock="true"
+                                />
+                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                    <i class="fas fa-globe text-gray-400"></i>
+                                </div>
+                            </div>
+                            <p class="mt-1 text-sm text-gray-500">Only same-origin pages will be crawled</p>
+                        </div>
+
+                        <!-- Crawl Options -->
+                        <div class="space-y-4">
+                            <h3 class="text-sm font-medium text-gray-900">Crawl Options</h3>
+                            
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="max-pages" class="block text-sm text-gray-700 mb-1">Max Pages</label>
+                                    <input 
+                                        type="number" 
+                                        id="max-pages"
+                                        data-bind="form.maxPages"
+                                        value="100"
+                                        min="1"
+                                        max="1000"
+                                        class="block w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-primary"
+                                        data-mock="true"
+                                    />
+                                </div>
+                                <div>
+                                    <label for="timeout" class="block text-sm text-gray-700 mb-1">Timeout (ms)</label>
+                                    <input 
+                                        type="number" 
+                                        id="timeout"
+                                        data-bind="form.timeout"
+                                        value="60000"
+                                        min="5000"
+                                        class="block w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-primary"
+                                        data-mock="true"
+                                    />
+                                </div>
+                            </div>
+
+                            <div class="flex items-center">
+                                <input 
+                                    id="include-css-bg" 
+                                    type="checkbox" 
+                                    data-bind="form.includeCssBackgrounds"
+                                    class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+                                    checked
+                                    data-mock="true"
+                                />
+                                <label for="include-css-bg" class="ml-2 text-sm text-gray-700">
+                                    Include CSS background images
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button 
+                            type="submit"
+                            data-event="click:startCrawl"
+                            class="w-full bg-primary hover:bg-blue-600 text-white font-medium py-3 px-4 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            data-implementation="Should be disabled during active crawl"
+                        >
+                            <i class="fas fa-play mr-2"></i>
+                            Start Crawling
+                        </button>
+                    </form>
+                </div>
+
+                <!-- @COMPONENT: CrawlStatus -->
+                <div class="mt-6 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold">Crawl Status</h3>
+                        <span class="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-600 rounded-full" data-bind="crawlState.status" data-mock="true">
+                            Idle
+                        </span>
+                    </div>
+                    
+                    <!-- @STATE: crawlInProgress:boolean = false -->
+                    <div class="space-y-4" data-bind="crawlState.progress" data-mock="true">
+                        <!-- Progress Bar -->
+                        <div>
+                            <div class="flex justify-between text-sm text-gray-600 mb-2">
+                                <span>Pages Crawled</span>
+                                <span><span data-bind="crawlState.pagesProcessed">0</span> / <span data-bind="crawlState.totalPagesFound">0</span></span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-primary h-2 rounded-full transition-all duration-300" style="width: 0%" data-bind="crawlState.progressPercent"></div>
+                            </div>
+                        </div>
+
+                        <!-- Current Page -->
+                        <div class="text-sm">
+                            <span class="text-gray-500">Current Page:</span>
+                            <span class="text-gray-900 break-all" data-bind="crawlState.currentPage" data-mock="true">-</span>
+                        </div>
+
+                        <!-- Statistics -->
+                        <div class="grid grid-cols-2 gap-4 pt-2">
+                            <div class="text-center p-3 bg-gray-50 rounded-lg">
+                                <div class="text-2xl font-bold text-success" data-bind="crawlState.imagesFound" data-mock="true">0</div>
+                                <div class="text-sm text-gray-500">Images Found</div>
+                            </div>
+                            <div class="text-center p-3 bg-gray-50 rounded-lg">
+                                <div class="text-2xl font-bold text-primary" data-bind="crawlState.elapsedTime" data-mock="true">0s</div>
+                                <div class="text-sm text-gray-500">Elapsed Time</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- @END_COMPONENT: CrawlStatus -->
+            </div>
+            <!-- @END_COMPONENT: CrawlerForm -->
+
+            <!-- @COMPONENT: ResultsSection -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                    <!-- Results Header -->
+                    <div class="p-6 border-b border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h2 class="text-lg font-semibold text-gray-900">Crawl Results</h2>
+                                <p class="text-sm text-gray-500 mt-1">
+                                    <span data-bind="results.totalImages" data-mock="true">0</span> images found from 
+                                    <span data-bind="results.totalPages" data-mock="true">0</span> pages
+                                </p>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <button 
+                                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50"
+                                    data-event="click:clearResults"
+                                    data-implementation="Should clear all results and reset state"
+                                >
+                                    <i class="fas fa-trash-can mr-2"></i>
+                                    Clear
+                                </button>
+                                <button 
+                                    class="px-4 py-2 text-sm font-medium text-white bg-success hover:bg-green-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-success focus:ring-offset-2 disabled:opacity-50"
+                                    data-event="click:downloadCSV"
+                                    data-implementation="Should generate and download CSV file with current results"
+                                >
+                                    <i class="fas fa-download mr-2"></i>
+                                    Download CSV
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filters and Search -->
+                    <div class="p-6 border-b border-gray-200 bg-gray-50">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <!-- Search -->
+                            <div class="md:col-span-2">
+                                <div class="relative">
+                                    <input 
+                                        type="text" 
+                                        placeholder="Search images..."
+                                        class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm"
+                                        data-bind="filters.searchQuery"
+                                        data-event="input:handleSearch"
+                                        data-mock="true"
+                                    />
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center">
+                                        <i class="fas fa-search text-gray-400"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Alt Text Filter -->
+                            <div>
+                                <select 
+                                    class="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm"
+                                    data-bind="filters.altTextFilter"
+                                    data-event="change:handleAltTextFilter"
+                                    data-mock="true"
+                                >
+                                    <option value="all">All Images</option>
+                                    <option value="with-alt">With Alt Text</option>
+                                    <option value="without-alt">Missing Alt Text</option>
+                                </select>
+                            </div>
+
+                            <!-- Image Type Filter -->
+                            <div>
+                                <select 
+                                    class="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm"
+                                    data-bind="filters.imageTypeFilter"
+                                    data-event="change:handleImageTypeFilter"
+                                    data-mock="true"
+                                >
+                                    <option value="all">All Types</option>
+                                    <option value="jpg">JPG</option>
+                                    <option value="png">PNG</option>
+                                    <option value="gif">GIF</option>
+                                    <option value="svg">SVG</option>
+                                    <option value="webp">WebP</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Results Table -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Source Page</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Alt Text</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                <!-- @MAP: results.images.map(image => ( -->
+                                <tr class="hover:bg-gray-50" data-mock="true">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0 h-12 w-12 bg-gray-200 rounded-lg overflow-hidden">
+                                                <!-- High-resolution product photography of wireless headphones on clean background -->
+                                                <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&h=100" alt="Wireless headphones" class="h-full w-full object-cover" data-mock-image="true" />
+                                            </div>
+                                            <div class="ml-3">
+                                                <div class="text-sm text-gray-900 truncate max-w-xs" data-bind="image.filename">headphones.jpg</div>
+                                                <div class="text-xs text-gray-500" data-bind="image.dimensions">800x600</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="text-sm text-gray-900 break-all max-w-xs" data-bind="image.sourcePage">https://example.com/products/audio</div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="text-sm text-gray-900" data-bind="image.altText">Premium wireless headphones</div>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-success text-white">
+                                            <i class="fas fa-check mr-1"></i>
+                                            Has Alt
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                            JPG
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <div class="flex space-x-2">
+                                            <button class="text-primary hover:text-blue-600" data-event="click:viewImage" title="View Image">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="text-gray-400 hover:text-gray-600" data-event="click:copyUrl" title="Copy URL">
+                                                <i class="fas fa-copy"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <tr class="hover:bg-gray-50" data-mock="true">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0 h-12 w-12 bg-gray-200 rounded-lg overflow-hidden">
+                                                <!-- Modern smartphone displaying colorful app icons on screen -->
+                                                <img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&h=100" alt="Smartphone with apps" class="h-full w-full object-cover" data-mock-image="true" />
+                                            </div>
+                                            <div class="ml-3">
+                                                <div class="text-sm text-gray-900 truncate max-w-xs" data-bind="image.filename">smartphone.png</div>
+                                                <div class="text-xs text-gray-500" data-bind="image.dimensions">1200x800</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="text-sm text-gray-900 break-all max-w-xs" data-bind="image.sourcePage">https://example.com/products/mobile</div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="text-sm text-gray-500 italic" data-bind="image.altText">No alt text</div>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-warning text-white">
+                                            <i class="fas fa-exclamation-triangle mr-1"></i>
+                                            Missing Alt
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                            PNG
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <div class="flex space-x-2">
+                                            <button class="text-primary hover:text-blue-600" data-event="click:viewImage" title="View Image">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="text-gray-400 hover:text-gray-600" data-event="click:copyUrl" title="Copy URL">
+                                                <i class="fas fa-copy"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <tr class="hover:bg-gray-50" data-mock="true">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0 h-12 w-12 bg-gray-200 rounded-lg overflow-hidden">
+                                                <!-- Professional desk setup with laptop, coffee, and notebooks in natural lighting -->
+                                                <img src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&h=100" alt="Laptop workspace" class="h-full w-full object-cover" data-mock-image="true" />
+                                            </div>
+                                            <div class="ml-3">
+                                                <div class="text-sm text-gray-900 truncate max-w-xs" data-bind="image.filename">workspace.webp</div>
+                                                <div class="text-xs text-gray-500" data-bind="image.dimensions">1600x1200</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="text-sm text-gray-900 break-all max-w-xs" data-bind="image.sourcePage">https://example.com/about/team</div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="text-sm text-gray-900" data-bind="image.altText">Modern workspace setup</div>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-success text-white">
+                                            <i class="fas fa-check mr-1"></i>
+                                            Has Alt
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                            WebP
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <div class="flex space-x-2">
+                                            <button class="text-primary hover:text-blue-600" data-event="click:viewImage" title="View Image">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="text-gray-400 hover:text-gray-600" data-event="click:copyUrl" title="Copy URL">
+                                                <i class="fas fa-copy"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <!-- @END_MAP )) -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+                        <div class="flex-1 flex justify-between sm:hidden">
+                            <button class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                Previous
+                            </button>
+                            <button class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                Next
+                            </button>
+                        </div>
+                        <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                            <div>
+                                <p class="text-sm text-gray-700">
+                                    Showing <span class="font-medium" data-bind="pagination.start" data-mock="true">1</span> to 
+                                    <span class="font-medium" data-bind="pagination.end" data-mock="true">3</span> of 
+                                    <span class="font-medium" data-bind="pagination.total" data-mock="true">3</span> results
+                                </p>
+                            </div>
+                            <div>
+                                <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                    <button class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50" data-event="click:previousPage">
+                                        <span class="sr-only">Previous</span>
+                                        <i class="fas fa-chevron-left"></i>
+                                    </button>
+                                    <button class="bg-primary border-primary text-white relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                        1
+                                    </button>
+                                    <button class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                        2
+                                    </button>
+                                    <button class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                        3
+                                    </button>
+                                    <button class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50" data-event="click:nextPage">
+                                        <span class="sr-only">Next</span>
+                                        <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- @END_COMPONENT: ResultsSection -->
+        </div>
+    </div>
+
+    <!-- @COMPONENT: ImagePreviewModal -->
+    <div id="imageModal" class="fixed inset-0 z-50 overflow-y-auto hidden" data-implementation="Modal should show/hide based on state">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" data-event="click:closeModal"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+            <div class="relative inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full sm:p-6">
+                <div class="absolute top-0 right-0 pt-4 pr-4">
+                    <button type="button" class="bg-white rounded-md text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary" data-event="click:closeModal">
+                        <span class="sr-only">Close</span>
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="sm:flex sm:items-start">
+                    <div class="mt-3 text-center sm:mt-0 sm:text-left w-full">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Image Preview</h3>
+                        <div class="bg-gray-100 rounded-lg p-4 mb-4 flex items-center justify-center min-h-96">
+                            <!-- Professional product photography of vintage camera on wooden surface -->
+                            <img src="https://images.unsplash.com/photo-1606983340126-99ab4feaa64a?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600" alt="Vintage camera" class="max-h-96 max-w-full object-contain rounded-lg shadow-lg" data-mock-image="true" data-bind="selectedImage.url" />
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                            <div>
+                                <label class="font-medium text-gray-700">Source URL:</label>
+                                <p class="text-gray-600 break-all" data-bind="selectedImage.sourceUrl" data-mock="true">https://example.com/images/camera.jpg</p>
+                            </div>
+                            <div>
+                                <label class="font-medium text-gray-700">Source Page:</label>
+                                <p class="text-gray-600 break-all" data-bind="selectedImage.sourcePage" data-mock="true">https://example.com/products/cameras</p>
+                            </div>
+                            <div>
+                                <label class="font-medium text-gray-700">Alt Text:</label>
+                                <p class="text-gray-600" data-bind="selectedImage.altText" data-mock="true">Vintage film camera with leather strap</p>
+                            </div>
+                            <div>
+                                <label class="font-medium text-gray-700">Dimensions:</label>
+                                <p class="text-gray-600" data-bind="selectedImage.dimensions" data-mock="true">1200 x 800 px</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: ImagePreviewModal -->
+
+    <!-- @COMPONENT: ErrorToast -->
+    <div id="errorToast" class="fixed top-4 right-4 z-50 hidden" data-implementation="Toast should show/hide based on error state">
+        <div class="bg-error text-white px-6 py-4 rounded-lg shadow-lg max-w-sm">
+            <div class="flex items-center">
+                <i class="fas fa-exclamation-circle mr-3"></i>
+                <div>
+                    <h4 class="font-medium">Crawl Error</h4>
+                    <p class="text-sm mt-1" data-bind="error.message" data-mock="true">Invalid URL format. Please check your input.</p>
+                </div>
+                <button class="ml-4 text-white hover:text-gray-200" data-event="click:dismissError">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: ErrorToast -->
+
+    <script>
+        // TODO: Implement business logic, API calls, and state management
+        (function() {
+            // Mock data and state management
+            let crawlState = {
+                status: 'idle',
+                progress: 0,
+                pagesProcessed: 0,
+                totalPagesFound: 0,
+                imagesFound: 0,
+                currentPage: '',
+                elapsedTime: '0s'
+            };
+
+            let results = {
+                images: [],
+                totalImages: 0,
+                totalPages: 0
+            };
+
+            // DOM Elements
+            const crawlForm = document.querySelector('form');
+            const imageModal = document.getElementById('imageModal');
+            const errorToast = document.getElementById('errorToast');
+
+            // Form handling
+            if (crawlForm) {
+                crawlForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    // TODO: Implement crawl start logic
+                    console.log('Starting crawl...');
+                });
+            }
+
+            // Modal handling
+            function showImageModal(imageData) {
+                if (imageModal) {
+                    imageModal.classList.remove('hidden');
+                    // TODO: Populate modal with image data
+                }
+            }
+
+            function hideImageModal() {
+                if (imageModal) {
+                    imageModal.classList.add('hidden');
+                }
+            }
+
+            // Error handling
+            function showError(message) {
+                if (errorToast) {
+                    errorToast.querySelector('[data-bind="error.message"]').textContent = message;
+                    errorToast.classList.remove('hidden');
+                    setTimeout(() => {
+                        errorToast.classList.add('hidden');
+                    }, 5000);
+                }
+            }
+
+            // Add event listeners for modal close buttons
+            document.addEventListener('click', function(e) {
+                if (e.target.matches('[data-event*="closeModal"]')) {
+                    hideImageModal();
+                }
+                if (e.target.matches('[data-event*="viewImage"]')) {
+                    showImageModal({});
+                }
+                if (e.target.matches('[data-event*="dismissError"]')) {
+                    if (errorToast) {
+                        errorToast.classList.add('hidden');
+                    }
+                }
+            });
+
+            // TODO: Implement WebSocket or polling for real-time progress updates
+            // TODO: Implement CSV download functionality
+            // TODO: Implement search and filtering logic
+            // TODO: Implement pagination
+            // TODO: Add form validation
+            // TODO: Add URL validation
+            // TODO: Implement crawl cancellation
+        })();
+    </script>
+</body>
+</html>

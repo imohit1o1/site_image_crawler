@@ -30,6 +30,18 @@ app.use((req, res, next) => {
       }
 
       log(logLine);
+      
+      // Add additional debug info for images endpoint
+      if (path === "/api/images" && capturedJsonResponse && Array.isArray(capturedJsonResponse)) {
+        console.log(`API Debug: /api/images returned ${capturedJsonResponse.length} images`);
+        if (capturedJsonResponse.length > 0) {
+          console.log('API Debug: First image sample:', {
+            id: capturedJsonResponse[0].id,
+            imageUrl: capturedJsonResponse[0].imageUrl,
+            pageUrl: capturedJsonResponse[0].pageUrl
+          });
+        }
+      }
     }
   });
 

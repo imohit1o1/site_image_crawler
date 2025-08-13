@@ -10,10 +10,27 @@ interface ImagePreviewModalProps {
 }
 
 export default function ImagePreviewModal({ image, isOpen, onClose }: ImagePreviewModalProps) {
-  if (!image) return null;
+  console.log('ImagePreviewModal render:', { image, isOpen });
+  
+  if (!image) {
+    console.log('ImagePreviewModal: No image provided, returning null');
+    return null;
+  }
+
+  console.log('ImagePreviewModal: Rendering modal with image:', {
+    id: image.id,
+    imageUrl: image.imageUrl,
+    pageUrl: image.pageUrl,
+    altText: image.altText
+  });
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => {
+      console.log('ImagePreviewModal: Dialog onOpenChange called with:', open);
+      if (!open) {
+        onClose();
+      }
+    }}>
       <DialogContent className="max-w-4xl w-full p-6">
         <DialogHeader>
           <div className="flex items-center justify-between">
@@ -38,7 +55,11 @@ export default function ImagePreviewModal({ image, isOpen, onClose }: ImagePrevi
               src={image.imageUrl} 
               alt={image.altText || 'Image preview'} 
               className="max-h-96 max-w-full object-contain rounded-lg shadow-lg"
+              onLoad={() => {
+                console.log('ImagePreviewModal: Image loaded successfully:', image.imageUrl);
+              }}
               onError={(e) => {
+                console.error('ImagePreviewModal: Image failed to load:', image.imageUrl, e);
                 const target = e.target as HTMLImageElement;
                 target.style.display = 'none';
                 target.parentElement!.innerHTML = '<div class="text-gray-500 text-center p-8">Failed to load image</div>';
