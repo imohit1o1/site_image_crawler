@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { crawlerService } from "./services/crawler";
+import { simpleCrawlerService } from "./services/simple-crawler";
 import { insertCrawlJobSchema } from "@shared/schema";
 import { z } from "zod";
 
@@ -15,7 +15,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const job = await storage.createCrawlJob(jobData);
       
       // Start crawling asynchronously
-      crawlerService.startCrawl(job.id).catch(console.error);
+      simpleCrawlerService.startCrawl(job.id).catch(console.error);
       
       res.json(job);
     } catch (error) {
@@ -164,10 +164,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     };
 
-    crawlerService.on('progress', progressHandler);
+    simpleCrawlerService.addProgressListener(jobId, sendProgress);
 
     req.on('close', () => {
-      crawlerService.removeListener('progress', progressHandler);
+      simpleCrawlerService.removeProgressListener(jobId);
+      res.end();
     });
   });
 

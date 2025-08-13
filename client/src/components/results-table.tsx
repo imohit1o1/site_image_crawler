@@ -129,7 +129,7 @@ export default function ResultsTable({ refreshTrigger, onImageView }: ResultsTab
     }
   };
 
-  const uniquePages = [...new Set(images.map((img: CrawledImage) => img.pageUrl))].length;
+  const uniquePages = Array.from(new Set(images.map((img: CrawledImage) => img.pageUrl))).length;
 
   return (
     <Card className="bg-white rounded-xl shadow-sm border border-gray-200">

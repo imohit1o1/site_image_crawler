@@ -53,8 +53,11 @@ export class MemStorage implements IStorage {
   async createCrawlJob(insertJob: InsertCrawlJob): Promise<CrawlJob> {
     const id = randomUUID();
     const job: CrawlJob = {
-      ...insertJob,
       id,
+      targetUrl: insertJob.targetUrl,
+      maxPages: insertJob.maxPages || 100,
+      timeout: insertJob.timeout || 60000,
+      includeCssBackgrounds: insertJob.includeCssBackgrounds || true,
       status: "pending",
       progress: 0,
       pagesProcessed: 0,
@@ -92,8 +95,15 @@ export class MemStorage implements IStorage {
   async createCrawledImage(insertImage: InsertCrawledImage): Promise<CrawledImage> {
     const id = randomUUID();
     const image: CrawledImage = {
-      ...insertImage,
       id,
+      jobId: insertImage.jobId,
+      pageUrl: insertImage.pageUrl,
+      imageUrl: insertImage.imageUrl,
+      altText: insertImage.altText || null,
+      imgTagHtml: insertImage.imgTagHtml || null,
+      imageType: insertImage.imageType || null,
+      filename: insertImage.filename || null,
+      dimensions: insertImage.dimensions || null,
       createdAt: new Date(),
     };
     this.crawledImages.set(id, image);
@@ -111,11 +121,13 @@ export class MemStorage implements IStorage {
   }
 
   async deleteCrawledImagesByJobId(jobId: string): Promise<void> {
-    for (const [id, image] of this.crawledImages.entries()) {
+    const entriesToDelete: string[] = [];
+    this.crawledImages.forEach((image, id) => {
       if (image.jobId === jobId) {
-        this.crawledImages.delete(id);
+        entriesToDelete.push(id);
       }
-    }
+    });
+    entriesToDelete.forEach(id => this.crawledImages.delete(id));
   }
 }
 

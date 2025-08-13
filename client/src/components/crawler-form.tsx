@@ -17,7 +17,7 @@ import { type CrawlFormData } from "@/lib/types";
 const formSchema = z.object({
   targetUrl: z.string().url("Please enter a valid URL"),
   maxPages: z.number().min(1, "Must be at least 1").max(1000, "Cannot exceed 1000"),
-  timeout: z.number().min(5000, "Must be at least 5000ms"),
+  timeout: z.number().min(2, "Must be at least 2 seconds").max(60, "Cannot exceed 60 seconds"),
   includeCssBackgrounds: z.boolean(),
 });
 
@@ -34,14 +34,16 @@ export default function CrawlerForm({ onCrawlStart, activeCrawlId }: CrawlerForm
     defaultValues: {
       targetUrl: "",
       maxPages: 100,
-      timeout: 60000,
+      timeout: 10,
       includeCssBackgrounds: true,
     },
   });
 
   const startCrawlMutation = useMutation({
     mutationFn: async (data: CrawlFormData) => {
-      const response = await apiRequest('POST', '/api/crawl', data);
+      // Convert timeout from seconds to milliseconds for the API
+      const apiData = { ...data, timeout: data.timeout * 1000 };
+      const response = await apiRequest('POST', '/api/crawl', apiData);
       return response.json();
     },
     onSuccess: (data) => {
@@ -137,12 +139,13 @@ export default function CrawlerForm({ onCrawlStart, activeCrawlId }: CrawlerForm
                   name="timeout"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm text-gray-700">Timeout (ms)</FormLabel>
+                      <FormLabel className="text-sm text-gray-700">Timeout (sec)</FormLabel>
                       <FormControl>
                         <Input
                           {...field}
                           type="number"
-                          min="5000"
+                          min="2"
+                          max="60"
                           onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                           className="text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-primary"
                           data-testid="input-timeout"

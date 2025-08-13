@@ -46,7 +46,17 @@ export class CrawlerService extends EventEmitter {
   private async performCrawl(job: CrawlJob): Promise<void> {
     const browser = await puppeteer.launch({
       headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+      executablePath: '/nix/store/zi4f80l169xlmivz8vja8wlphq74qqk0-chromium-125.0.6422.141/bin/chromium',
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--no-first-run',
+        '--no-zygote',
+        '--single-process',
+        '--disable-gpu'
+      ]
     });
 
     const page = await browser.newPage();
@@ -89,7 +99,7 @@ export class CrawlerService extends EventEmitter {
 
           // Extract links for BFS
           const links = await page.evaluate(() => 
-            Array.from(document.querySelectorAll('a[href]')).map((a: HTMLAnchorElement) => a.href)
+            Array.from(document.querySelectorAll('a[href]')).map((a) => (a as HTMLAnchorElement).href)
           );
 
           for (const link of links) {
@@ -166,27 +176,29 @@ export class CrawlerService extends EventEmitter {
       });
       
       // <picture> <source srcset=...>
-      document.querySelectorAll('picture source').forEach((source: HTMLSourceElement) => {
-        const srcset = source.getAttribute('srcset') || '';
+      document.querySelectorAll('picture source').forEach((source) => {
+        const sourceEl = source as HTMLSourceElement;
+        const srcset = sourceEl.getAttribute('srcset') || '';
         const firstSrc = srcset.split(',').map(s => s.trim()).filter(Boolean)[0] || '';
         if (firstSrc) {
           imgs.push({
             image_url: firstSrc.split(' ')[0], // Remove descriptor
             alt_text: '',
-            html: source.outerHTML
+            html: sourceEl.outerHTML
           });
         }
       });
       
       if (includeCss) {
         // Inline style background-image
-        document.querySelectorAll('[style]').forEach((el: HTMLElement) => {
-          const style = el.getAttribute('style') || '';
+        document.querySelectorAll('[style]').forEach((el) => {
+          const element = el as HTMLElement;
+          const style = element.getAttribute('style') || '';
           const match = style.match(/background-image:\s*url\(['\"]?(.*?)['\"]?\)/i);
           if (match && match[1]) {
             imgs.push({
               image_url: match[1],
-              alt_text: el.getAttribute('aria-label') || '',
+              alt_text: element.getAttribute('aria-label') || '',
               html: style
             });
           }
